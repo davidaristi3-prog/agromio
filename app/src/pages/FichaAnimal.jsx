@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-const TABS = ['Resumen', 'Ordeños', 'Sanidad', 'Reproducción', 'Movimientos']
+const TABS = ['Resumen', 'Fotos', 'Ordeños', 'Sanidad', 'Reproducción', 'Movimientos']
 
 export default function FichaAnimal() {
   const { id } = useParams()
@@ -13,6 +13,8 @@ export default function FichaAnimal() {
   const [sanitarios, setSanitarios] = useState([])
   const [reproductivos, setReproductivos] = useState([])
   const [movimientos, setMovimientos] = useState([])
+  const [fotos, setFotos] = useState([])
+  const [subiendo, setSubiendo] = useState(false)
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -24,12 +26,14 @@ export default function FichaAnimal() {
         { data: s },
         { data: r },
         { data: m },
+        { data: f },
       ] = await Promise.all([
         supabase.from('animales').select('*,fincas(nombre),lotes(nombre)').eq('id', id).single(),
         supabase.from('ordenos').select('*').eq('animal_id', id).order('fecha', { ascending: false }).limit(30),
         supabase.from('eventos_sanitarios').select('*').eq('animal_id', id).order('fecha', { ascending: false }).limit(30),
         supabase.from('eventos_reproductivos').select('*').eq('animal_id', id).order('fecha', { ascending: false }).limit(30),
         supabase.from('movimientos_hato').select('*,finca_origen:fincas!movimientos_hato_finca_origen_id_fkey(nombre),finca_destino:fincas!movimientos_hato_finca_destino_id_fkey(nombre)').eq('animal_id', id).order('fecha', { ascending: false }).limit(20),
+        supabase.from('fotos_animales').select('*').eq('animal_id', id).order('created_at', { ascending: false }),
       ])
 
       // Cargar madre y padre por separado para evitar self-join
@@ -46,10 +50,25 @@ export default function FichaAnimal() {
       setSanitarios(s ?? [])
       setReproductivos(r ?? [])
       setMovimientos(m ?? [])
+      setFotos(f ?? [])
       setCargando(false)
     }
     cargar()
   }, [id])
+
+  async function subirFoto(archivo) {
+    if (!archivo) return
+    setSubiendo(true)
+    const path = `animales/${id}/${Date.now()}.${archivo.name.split('.').pop()}`
+    const { error } = await supabase.storage.from('evidencias').upload(path, archivo)
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from('evidencias').getPublicUrl(path)
+      await supabase.from('fotos_animales').insert({ animal_id: id, url: publicUrl, fecha: new Date().toISOString().split('T')[0] })
+      const { data: nuevasFotos } = await supabase.from('fotos_animales').select('*').eq('animal_id', id).order('created_at', { ascending: false })
+      setFotos(nuevasFotos ?? [])
+    }
+    setSubiendo(false)
+  }
 
   if (cargando) return <div className="pt-8 text-center text-gray-400 text-sm">Cargando ficha...</div>
   if (!animal) return <div className="pt-8 text-center text-gray-400 text-sm">Animal no encontrado</div>
@@ -124,6 +143,29 @@ export default function FichaAnimal() {
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Genealogía</p>
               {animal.madre && <p className="text-sm text-gray-700">Madre: <strong>{animal.madre.identificacion}{animal.madre.nombre ? ` (${animal.madre.nombre})` : ''}</strong></p>}
               {animal.padre && <p className="text-sm text-gray-700">Padre: <strong>{animal.padre.identificacion}{animal.padre.nombre ? ` (${animal.padre.nombre})` : ''}</strong></p>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'Fotos' && (
+        <div className="space-y-3">
+          <label className="block border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-verde-400 transition">
+            <div className="text-3xl mb-1">📷</div>
+            <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : 'Toca para agregar foto'}</div>
+            <input type="file" accept="image/*" capture="environment" className="hidden"
+              onChange={e => e.target.files[0] && subirFoto(e.target.files[0])} disabled={subiendo} />
+          </label>
+          {fotos.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-4">Sin fotos aún</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {fotos.map(f => (
+                <div key={f.id} className="relative">
+                  <img src={f.url} alt="foto animal" className="w-full h-36 object-cover rounded-xl border border-gray-200" />
+                  <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">{f.fecha}</div>
+                </div>
+              ))}
             </div>
           )}
         </div>

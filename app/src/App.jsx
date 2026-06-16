@@ -16,6 +16,8 @@ import Inventario from './pages/Inventario'
 import FichaAnimal from './pages/FichaAnimal'
 import Reportes from './pages/Reportes'
 import Finanzas from './pages/Finanzas'
+import Busqueda from './pages/Busqueda'
+import Perfil from './pages/Perfil'
 
 function Rutas() {
   const { session } = useAuth()
@@ -44,6 +46,8 @@ function Rutas() {
           <Route path="/animales/:id" element={<FichaAnimal />} />
           <Route path="/reportes"    element={<Reportes />}   />
           <Route path="/finanzas"    element={<Finanzas />}   />
+          <Route path="/busqueda"    element={<Busqueda />}   />
+          <Route path="/perfil"      element={<Perfil />}     />
           <Route path="*"             element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

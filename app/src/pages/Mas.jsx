@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const modulos = [
+  { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
   { to: '/reportes',    icon: '📊', label: 'Reportes',      desc: 'Producción, tareas y estadísticas' },
-  { to: '/finanzas',    icon: '💰', label: 'Finanzas',       desc: 'Ingresos, gastos y costo por litro' },
+  { to: '/finanzas',    icon: '💰', label: 'Finanzas',      desc: 'Ingresos, gastos y costo por litro' },
   { to: '/sanidad',     icon: '💉', label: 'Sanidad',       desc: 'Tratamientos, vacunas, retiro de leche' },
   { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
   { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
