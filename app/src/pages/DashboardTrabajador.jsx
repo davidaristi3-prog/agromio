@@ -41,12 +41,13 @@ export default function DashboardTrabajador() {
   const hoy = new Date().toISOString().split('T')[0]
 
   const modulos = [
-    { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Consultar hato y fichas' },
-    { to: '/tareas',       icon: '✅', label: 'Mis tareas',   desc: 'Ver y completar tareas' },
-    { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registrar producción' },
-    { to: '/sanidad',      icon: '💉', label: 'Sanidad',      desc: 'Registrar eventos' },
-    { to: '/reproduccion', icon: '🔬', label: 'Reproducción', desc: 'Registrar eventos' },
-    { to: '/fincas',       icon: '🏡', label: 'Fincas',       desc: 'Ver fincas y lotes' },
+    { to: '/tareas-recurrentes', icon: '🔄', label: 'Tareas del día',  desc: 'Tus actividades diarias' },
+    { to: '/animales',           icon: '🐄', label: 'Animales',        desc: 'Consultar hato y fichas' },
+    { to: '/tareas',             icon: '✅', label: 'Tareas asignadas',desc: 'Ver y completar tareas' },
+    { to: '/ordenos',            icon: '🥛', label: 'Ordeños',         desc: 'Registrar producción' },
+    { to: '/sanidad',            icon: '💉', label: 'Sanidad',         desc: 'Registrar eventos' },
+    { to: '/reproduccion',       icon: '🔬', label: 'Reproducción',    desc: 'Registrar eventos' },
+    { to: '/fincas',             icon: '🏡', label: 'Fincas',          desc: 'Ver fincas y lotes' },
   ]
 
   return (

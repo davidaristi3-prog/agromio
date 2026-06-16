@@ -10,12 +10,14 @@ const MODULOS_PROPIETARIO = [
   { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
   { to: '/inventario',  icon: '📦', label: 'Inventario',    desc: 'Medicamentos, concentrado, minerales' },
   { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Gestión de fincas y lotes/potreros' },
-  { to: '/equipo',      icon: '👥', label: 'Equipo',        desc: 'Mayordomos, trabajadores y asignaciones' },
+  { to: '/equipo',             icon: '👥', label: 'Equipo',             desc: 'Mayordomos, trabajadores y asignaciones' },
+  { to: '/tareas-recurrentes', icon: '🔄', label: 'Tareas recurrentes', desc: 'Ver y gestionar tareas diarias del equipo' },
 ]
 
 const MODULOS_MAYORDOMO = [
-  { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
-  { to: '/sanidad',     icon: '💉', label: 'Sanidad',       desc: 'Tratamientos, vacunas, retiro de leche' },
+  { to: '/perfil',               icon: '👤', label: 'Mi perfil',          desc: 'Información personal y contraseña' },
+  { to: '/tareas-recurrentes',   icon: '🔄', label: 'Tareas recurrentes', desc: 'Ver y gestionar tareas diarias del equipo' },
+  { to: '/sanidad',              icon: '💉', label: 'Sanidad',            desc: 'Tratamientos, vacunas, retiro de leche' },
   { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
   { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
   { to: '/inventario',  icon: '📦', label: 'Inventario',    desc: 'Medicamentos, concentrado, minerales' },
@@ -23,9 +25,10 @@ const MODULOS_MAYORDOMO = [
 ]
 
 const MODULOS_TRABAJADOR = [
-  { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
-  { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Ver fincas y lotes' },
-  { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados del hato' },
+  { to: '/perfil',               icon: '👤', label: 'Mi perfil',          desc: 'Información personal y contraseña' },
+  { to: '/tareas-recurrentes',   icon: '🔄', label: 'Tareas del día',     desc: 'Ver tus tareas diarias' },
+  { to: '/fincas',               icon: '🏡', label: 'Fincas',             desc: 'Ver fincas y lotes' },
+  { to: '/movimientos',          icon: '🚛', label: 'Movimientos',        desc: 'Traslados del hato' },
 ]
 
 export default function Mas() {

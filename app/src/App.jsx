@@ -20,6 +20,7 @@ import Reportes from './pages/Reportes'
 import Finanzas from './pages/Finanzas'
 import Busqueda from './pages/Busqueda'
 import Perfil from './pages/Perfil'
+import TareasRecurrentes from './pages/TareasRecurrentes'
 
 function Rutas() {
   const { session, perfil } = useAuth()
@@ -53,7 +54,8 @@ function Rutas() {
           <Route path="/reportes"    element={<Reportes />}   />
           <Route path="/finanzas"    element={<Finanzas />}   />
           <Route path="/busqueda"    element={<Busqueda />}   />
-          <Route path="/perfil"      element={<Perfil />}     />
+          <Route path="/perfil"           element={<Perfil />}            />
+          <Route path="/tareas-recurrentes" element={<TareasRecurrentes />} />
           <Route path="*"             element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
