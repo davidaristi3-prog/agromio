@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import DashboardMayordomo from './pages/DashboardMayordomo'
+import DashboardTrabajador from './pages/DashboardTrabajador'
 import Animales from './pages/Animales'
 import Tareas from './pages/Tareas'
 import Ordenos from './pages/Ordenos'
@@ -20,7 +22,7 @@ import Busqueda from './pages/Busqueda'
 import Perfil from './pages/Perfil'
 
 function Rutas() {
-  const { session } = useAuth()
+  const { session, perfil } = useAuth()
 
   if (session === undefined) {
     return <div className="min-h-screen flex items-center justify-center text-gray-400">Cargando...</div>
@@ -32,7 +34,11 @@ function Rutas() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/"             element={<Dashboard />}   />
+          <Route path="/" element={
+            perfil?.rol === 'trabajador' ? <DashboardTrabajador /> :
+            perfil?.rol === 'mayordomo'  ? <DashboardMayordomo />  :
+            <Dashboard />
+          } />
           <Route path="/animales"     element={<Animales />}    />
           <Route path="/tareas"       element={<Tareas />}      />
           <Route path="/ordenos"      element={<Ordenos />}     />

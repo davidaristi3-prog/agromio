@@ -58,6 +58,8 @@ export default function Ordenos() {
       litros: Number(form.litros),
       numero_ordeno: Number(form.numero_ordeno),
       registrado_por: perfil.id,
+      creado_por: perfil.id,
+      estado: perfil.rol === 'trabajador' ? 'pendiente' : 'aprobado',
     })
     if (error) { console.error('Error ordeño:', error); setGuardando(false); return }
     setGuardando(false)

@@ -47,6 +47,8 @@ export default function Sanidad() {
       animal_id: form.animal_id || null,
       fecha_fin_retiro: form.fecha_fin_retiro || null,
       registrado_por: perfil.id,
+      creado_por: perfil.id,
+      estado: perfil.rol === 'trabajador' ? 'pendiente' : 'aprobado',
     })
     // Si requiere retiro, actualizar el animal
     if (form.requiere_retiro && form.animal_id) {

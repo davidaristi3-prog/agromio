@@ -62,6 +62,8 @@ export default function Reproduccion() {
       toro_o_semen: form.toro_o_semen || null,
       fecha_probable_parto: form.fecha_probable_parto || null,
       registrado_por: perfil.id,
+      creado_por: perfil.id,
+      estado: perfil.rol === 'trabajador' ? 'pendiente' : 'aprobado',
     }
     await supabase.from('eventos_reproductivos').insert(payload)
 
