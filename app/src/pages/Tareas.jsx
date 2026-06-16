@@ -2,6 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
+async function notificarTarea({ tarea_id, asignado_a, titulo, descripcion }) {
+  if (!asignado_a) return
+  try {
+    await supabase.functions.invoke('notificar-tarea', {
+      body: { tarea_id, asignado_a, titulo, descripcion },
+    })
+  } catch {}
+}
+
 export default function Tareas() {
   const { perfil } = useAuth()
   const [tareas, setTareas] = useState([])
@@ -43,7 +52,15 @@ export default function Tareas() {
   async function guardar(e) {
     e.preventDefault()
     setGuardando(true)
-    await supabase.from('tareas').insert({ ...form, creado_por: perfil.id, tipo: 'puntual' })
+    const { data: nueva } = await supabase
+      .from('tareas')
+      .insert({ ...form, creado_por: perfil.id, tipo: 'puntual' })
+      .select('id')
+      .single()
+    // Notificar al trabajador asignado
+    if (nueva?.id && form.asignado_a) {
+      notificarTarea({ tarea_id: nueva.id, asignado_a: form.asignado_a, titulo: form.titulo, descripcion: form.descripcion })
+    }
     setGuardando(false)
     setModalAbierto(false)
     setForm({ titulo: '', descripcion: '', finca_id: '', asignado_a: '', fecha_vencimiento: '', prioridad: 'media' })

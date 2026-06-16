@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { inicializarOneSignal } from '../lib/onesignal'
 
 const AuthContext = createContext(null)
 
@@ -26,7 +27,11 @@ export function AuthProvider({ children }) {
       .select('*')
       .eq('id', session.user.id)
       .single()
-      .then(({ data }) => setPerfil(data))
+      .then(({ data }) => {
+        setPerfil(data)
+        // Inicializar notificaciones push para este usuario
+        inicializarOneSignal(session.user.id).catch(() => {})
+      })
   }, [session])
 
   const logout = () => supabase.auth.signOut()
