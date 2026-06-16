@@ -11,7 +11,7 @@ export default function Dashboard() {
   const [finanzas, setFinanzas] = useState({ ingresos: 0, gastos: 0 })
   const [alertas, setAlertas] = useState([])
   const [cargando, setCargando] = useState(true)
-  const [meta, setMeta] = useState(() => Number(localStorage.getItem('meta_litros') ?? META_DEFAULT))
+  const [meta, setMeta] = useState(() => Number(localStorage.getItem('meta_litros') || META_DEFAULT))
   const [editandoMeta, setEditandoMeta] = useState(false)
   const [metaInput, setMetaInput] = useState('')
 
@@ -50,10 +50,8 @@ export default function Dashboard() {
       ])
 
       const stockBajo = insumosBajos?.filter(i => Number(i.stock_actual) <= Number(i.stock_minimo)) ?? []
-
       const litrosHoy  = ordenosHoy?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
       const litrosAyer = ordenosAyer?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
-
       const ingMes = txMes?.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.valor), 0) ?? 0
       const gasMes = txMes?.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.valor), 0) ?? 0
 
@@ -66,42 +64,81 @@ export default function Dashboard() {
       partosProximos?.forEach(p => nuevasAlertas.push({ tipo: 'parto', texto: `Parto próximo: ${p.animales?.identificacion ?? '?'} el ${p.fecha_probable_parto}`, color: 'yellow' }))
       stockBajo?.forEach(i => nuevasAlertas.push({ tipo: 'stock', texto: `Stock bajo: ${i.nombre} (${i.stock_actual} unidades)`, color: 'orange' }))
       setAlertas(nuevasAlertas)
-
       setCargando(false)
     }
     cargar()
   }, [])
 
   const pct = Math.min((resumen.litrosHoy / meta) * 100, 100)
-  const semaforoColor = pct >= 90 ? 'bg-green-500' : pct >= 70 ? 'bg-yellow-400' : 'bg-red-400'
-  const semaforoTexto = pct >= 90 ? 'En meta 🟢' : pct >= 70 ? 'Cerca de la meta 🟡' : 'Por debajo de meta 🔴'
+  const balance = finanzas.ingresos - finanzas.gastos
+  const diffAyer = resumen.litrosHoy - resumen.litrosAyer
+  const semaforoLabel = pct >= 90 ? 'En meta' : pct >= 70 ? 'Cerca de la meta' : 'Por debajo de meta'
+  const heroBg = pct >= 90 ? 'from-green-600 to-green-700' : pct >= 70 ? 'from-yellow-500 to-yellow-600' : 'from-verde-700 to-verde-800'
 
   function guardarMeta(e) {
     e.preventDefault()
     const nueva = Number(metaInput)
-    if (nueva > 0) {
-      setMeta(nueva)
-      localStorage.setItem('meta_litros', nueva)
-    }
+    if (nueva > 0) { setMeta(nueva); localStorage.setItem('meta_litros', nueva) }
     setEditandoMeta(false)
   }
-  const balance = finanzas.ingresos - finanzas.gastos
 
   const modulos = [
-    { to: '/animales',     icon: '🐄', label: 'Animales'      },
-    { to: '/tareas',       icon: '✅', label: 'Tareas'        },
-    { to: '/ordenos',      icon: '🥛', label: 'Ordeños'       },
-    { to: '/sanidad',      icon: '💉', label: 'Sanidad'       },
-    { to: '/reproduccion', icon: '🔬', label: 'Reproducción'  },
-    { to: '/movimientos',  icon: '🚛', label: 'Movimientos'   },
-    { to: '/finanzas',     icon: '💰', label: 'Finanzas'      },
-    { to: '/reportes',     icon: '📊', label: 'Reportes'      },
+    { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato y fichas' },
+    { to: '/tareas',       icon: '✅', label: 'Tareas',       desc: 'Pendientes y asignadas' },
+    { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
+    { to: '/sanidad',      icon: '💉', label: 'Sanidad',      desc: 'Tratamientos y vacunas' },
+    { to: '/reproduccion', icon: '🔬', label: 'Reproducción', desc: 'Servicios y partos' },
+    { to: '/movimientos',  icon: '🚛', label: 'Movimientos',  desc: 'Traslados y bajas' },
+    { to: '/finanzas',     icon: '💰', label: 'Finanzas',     desc: 'Ingresos y gastos' },
+    { to: '/reportes',     icon: '📊', label: 'Reportes',     desc: 'Estadísticas' },
   ]
 
   return (
-    <div className="space-y-5 pt-2">
-      <div>
-        <h2 className="text-xl font-bold text-gray-800">Hola {perfil?.nombre?.split(' ')[0]}</h2>
+    <div className="space-y-4 pt-1">
+
+      {/* Hero — producción del día */}
+      <div className={`bg-gradient-to-br ${heroBg} rounded-2xl p-5 text-white shadow-lg`}>
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="text-green-100 text-sm font-medium">Hola {perfil?.nombre?.split(' ')[0]}</p>
+            <p className="text-white/70 text-xs">Producción de hoy</p>
+          </div>
+          <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{semaforoLabel}</span>
+        </div>
+
+        <div className="flex items-end gap-3 mb-4">
+          <span className="text-5xl font-bold tracking-tight">{cargando ? '—' : resumen.litrosHoy.toFixed(0)}</span>
+          <div className="mb-1">
+            <span className="text-xl text-white/80">L</span>
+            {!cargando && resumen.litrosAyer > 0 && (
+              <div className={`text-xs mt-0.5 ${diffAyer >= 0 ? 'text-green-200' : 'text-red-200'}`}>
+                {diffAyer >= 0 ? '▲' : '▼'} {Math.abs(diffAyer).toFixed(0)} L vs ayer
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Barra de progreso */}
+        <div className="w-full bg-white/20 rounded-full h-2 mb-2">
+          <div className="bg-white h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+        </div>
+
+        <div className="flex justify-between items-center text-xs text-white/60">
+          <span>0 L</span>
+          {editandoMeta ? (
+            <form onSubmit={guardarMeta} className="flex items-center gap-1">
+              <input autoFocus type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)}
+                className="bg-white/20 text-white placeholder-white/50 rounded px-2 py-0.5 w-24 text-xs focus:outline-none" />
+              <button type="submit" className="text-white font-semibold">OK</button>
+              <button type="button" onClick={() => setEditandoMeta(false)} className="text-white/60">×</button>
+            </form>
+          ) : (
+            <button onClick={() => { setMetaInput(meta); setEditandoMeta(true) }}
+              className="text-white/60 hover:text-white transition">
+              Meta: {meta.toLocaleString()} L ✏️
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Alertas */}
@@ -120,105 +157,67 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Semáforo de producción */}
+      {/* Stats */}
       {!cargando && (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-700">Producción hoy</span>
-            <span className="text-xs text-gray-500">{semaforoTexto}</span>
-          </div>
-          <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold text-gray-800">{resumen.litrosHoy.toFixed(0)} L</span>
-            <span className="text-sm text-gray-400 mb-1">
-              {resumen.litrosAyer > 0 && (
-                resumen.litrosHoy >= resumen.litrosAyer
-                  ? `▲ ${(resumen.litrosHoy - resumen.litrosAyer).toFixed(0)} vs ayer`
-                  : `▼ ${(resumen.litrosAyer - resumen.litrosHoy).toFixed(0)} vs ayer`
-              )}
-            </span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-3">
-            <div className={`h-3 rounded-full transition-all ${semaforoColor}`} style={{ width: `${pct}%` }} />
-          </div>
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>0</span>
-            {editandoMeta ? (
-              <form onSubmit={guardarMeta} className="flex items-center gap-1">
-                <input autoFocus type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-0.5 w-24 text-xs text-gray-700 focus:outline-none" />
-                <button type="submit" className="text-verde-600 font-semibold text-xs">OK</button>
-                <button type="button" onClick={() => setEditandoMeta(false)} className="text-gray-400 text-xs">×</button>
-              </form>
-            ) : (
-              <button onClick={() => { setMetaInput(meta); setEditandoMeta(true) }}
-                className="text-gray-400 hover:text-verde-600 transition">
-                Meta: {meta.toLocaleString()} L ✏️
-              </button>
-            )}
-          </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { icon: '🏡', label: 'Fincas',    valor: resumen.fincas   },
+            { icon: '🐄', label: 'Animales',  valor: resumen.animales  },
+            { icon: '🥛', label: 'En ordeño', valor: resumen.enOrdeno },
+          ].map(({ icon, label, valor }) => (
+            <div key={label} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
+              <div className="text-2xl mb-1">{icon}</div>
+              <div className="text-2xl font-bold text-gray-800">{valor}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Balance del mes */}
       {!cargando && (finanzas.ingresos > 0 || finanzas.gastos > 0) && (
-        <Link to="/finanzas" className="block bg-white border border-gray-200 rounded-xl p-4">
+        <Link to="/finanzas" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-gray-700">Finanzas este mes</span>
             <span className="text-xs text-gray-400">Ver detalle ›</span>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">Ingresos</div>
+              <div className="text-xs text-gray-400 mb-0.5">Ingresos</div>
               <div className="text-sm font-bold text-verde-700">${finanzas.ingresos.toLocaleString('es-CO')}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">Gastos</div>
+              <div className="text-xs text-gray-400 mb-0.5">Gastos</div>
               <div className="text-sm font-bold text-red-500">${finanzas.gastos.toLocaleString('es-CO')}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">Balance</div>
+              <div className="text-xs text-gray-400 mb-0.5">Balance</div>
               <div className={`text-sm font-bold ${balance >= 0 ? 'text-verde-700' : 'text-red-500'}`}>
-                {balance >= 0 ? '+' : '-'}${Math.abs(balance).toLocaleString('es-CO')}
+                {balance >= 0 ? '+' : ''}${balance.toLocaleString('es-CO')}
               </div>
             </div>
           </div>
         </Link>
       )}
 
-      {/* Stats */}
-      {cargando ? (
-        <p className="text-gray-400 text-sm">Cargando datos...</p>
-      ) : (
-        <div className="grid grid-cols-3 gap-2">
-          <Stat icon="🏡" label="Fincas"    valor={resumen.fincas}   />
-          <Stat icon="🐄" label="Animales"  valor={resumen.animales}  />
-          <Stat icon="🥛" label="En ordeño" valor={resumen.enOrdeno} />
-        </div>
-      )}
-
       {/* Módulos */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Módulos</h3>
-        <div className="grid grid-cols-4 gap-2">
-          {modulos.map(({ to, icon, label }) => (
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Módulos</p>
+        <div className="space-y-2">
+          {modulos.map(({ to, icon, label, desc }) => (
             <Link key={to} to={to}
-              className="border border-gray-200 rounded-xl py-3 flex flex-col items-center gap-1 bg-white hover:shadow transition">
-              <span className="text-2xl">{icon}</span>
-              <span className="text-xs text-gray-600 font-medium text-center leading-tight">{label}</span>
+              className="bg-white rounded-2xl px-4 py-3 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow transition">
+              <span className="text-2xl w-8 text-center">{icon}</span>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-gray-800">{label}</div>
+                <div className="text-xs text-gray-400">{desc}</div>
+              </div>
+              <span className="text-gray-300 text-lg">›</span>
             </Link>
           ))}
         </div>
       </div>
-    </div>
-  )
-}
 
-function Stat({ icon, label, valor }) {
-  return (
-    <div className="rounded-xl border border-gray-200 p-3 bg-white text-center">
-      <div className="text-xl mb-0.5">{icon}</div>
-      <div className="text-xl font-bold text-gray-800">{valor}</div>
-      <div className="text-xs text-gray-500">{label}</div>
     </div>
   )
 }
