@@ -19,6 +19,8 @@ export default function Tareas() {
   const [cargando, setCargando] = useState(true)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [detalleId, setDetalleId] = useState(null)
+  const [fotosDetalle, setFotosDetalle] = useState([])
+  const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [form, setForm] = useState({ titulo: '', descripcion: '', finca_id: '', asignado_a: '', fecha_vencimiento: '', prioridad: 'media' })
   const [guardando, setGuardando] = useState(false)
   const fotoRef = useRef()
@@ -72,17 +74,43 @@ export default function Tareas() {
     cargar()
   }
 
-  async function subirArchivo(tareaId, campo, bucket, archivo) {
+  async function subirFotos(tareaId, archivos) {
+    setSubiendoFoto(true)
+    for (const archivo of archivos) {
+      const ext = archivo.name.split('.').pop()
+      const path = `${tareaId}/foto-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('evidencias').upload(path, archivo)
+      if (!error) {
+        const { data: { publicUrl } } = supabase.storage.from('evidencias').getPublicUrl(path)
+        await supabase.from('fotos_tareas').insert({ tarea_id: tareaId, url: publicUrl })
+      }
+    }
+    const { data: fotos } = await supabase.from('fotos_tareas').select('*').eq('tarea_id', tareaId).order('created_at')
+    setFotosDetalle(fotos ?? [])
+    setSubiendoFoto(false)
+  }
+
+  async function subirAudio(tareaId, archivo) {
     const ext = archivo.name.split('.').pop()
-    const path = `${tareaId}/${campo}-${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from(bucket).upload(path, archivo)
+    const path = `${tareaId}/audio-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('notas-voz').upload(path, archivo)
     if (error) return
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path)
-    await supabase.from('tareas').update({ [campo]: publicUrl }).eq('id', tareaId)
+    const { data: { publicUrl } } = supabase.storage.from('notas-voz').getPublicUrl(path)
+    await supabase.from('tareas').update({ nota_voz_url: publicUrl }).eq('id', tareaId)
     cargar()
   }
 
+  async function cargarFotosDetalle(tareaId) {
+    const { data } = await supabase.from('fotos_tareas').select('*').eq('tarea_id', tareaId).order('created_at')
+    setFotosDetalle(data ?? [])
+  }
+
   const detalle = tareas.find(t => t.id === detalleId)
+
+  function abrirDetalle(id) {
+    setDetalleId(id)
+    cargarFotosDetalle(id)
+  }
 
   return (
     <div className="space-y-4 pt-2">
@@ -104,7 +132,7 @@ export default function Tareas() {
         <div className="space-y-2">
           {tareas.map(t => (
             <div key={t.id}
-              onClick={() => setDetalleId(t.id)}
+              onClick={() => abrirDetalle(t.id)}
               className={`bg-white border rounded-xl px-4 py-3 cursor-pointer hover:shadow transition ${t.completada ? 'border-gray-100 opacity-60' : 'border-gray-200'}`}>
               <div className="flex items-start gap-3">
                 <span className="text-lg mt-0.5">{t.completada ? '✅' : prioridadIcon(t.prioridad)}</span>
@@ -135,17 +163,22 @@ export default function Tareas() {
               {detalle.fecha_vencimiento && <div>Vence: {detalle.fecha_vencimiento}</div>}
             </div>
 
-            {/* Foto evidencia */}
+            {/* Fotos evidencia */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">📷 Foto de evidencia</p>
-              {detalle.foto_evidencia_url
-                ? <img src={detalle.foto_evidencia_url} alt="evidencia" className="rounded-lg w-full max-h-48 object-cover" />
-                : <label className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-sm text-gray-400 cursor-pointer hover:border-verde-400 transition">
-                    Toca para subir foto
-                    <input ref={fotoRef} type="file" accept="image/*" capture="environment" className="hidden"
-                      onChange={e => e.target.files[0] && subirArchivo(detalle.id, 'foto_evidencia_url', 'evidencias', e.target.files[0])} />
-                  </label>
-              }
+              <p className="text-sm font-medium text-gray-700 mb-2">📷 Fotos de evidencia</p>
+              {fotosDetalle.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  {fotosDetalle.map(f => (
+                    <img key={f.id} src={f.url} alt="evidencia" className="rounded-lg w-full h-32 object-cover border border-gray-200" />
+                  ))}
+                </div>
+              )}
+              <label className="block border-2 border-dashed border-gray-300 rounded-lg p-3 text-center text-sm text-gray-400 cursor-pointer hover:border-verde-400 transition">
+                {subiendoFoto ? 'Subiendo...' : fotosDetalle.length > 0 ? '+ Agregar más fotos' : 'Toca para subir fotos'}
+                <input type="file" accept="image/*" multiple className="hidden"
+                  disabled={subiendoFoto}
+                  onChange={e => e.target.files.length > 0 && subirFotos(detalle.id, Array.from(e.target.files))} />
+              </label>
             </div>
 
             {/* Nota de voz */}
@@ -156,7 +189,7 @@ export default function Tareas() {
                 : <label className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-sm text-gray-400 cursor-pointer hover:border-verde-400 transition">
                     Toca para subir audio
                     <input type="file" accept="audio/*" className="hidden"
-                      onChange={e => e.target.files[0] && subirArchivo(detalle.id, 'nota_voz_url', 'notas-voz', e.target.files[0])} />
+                      onChange={e => e.target.files[0] && subirAudio(detalle.id, e.target.files[0])} />
                   </label>
               }
             </div>
