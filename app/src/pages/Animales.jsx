@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const TIPOS = ['vaca','novilla','ternera','ternero','toro']
 const ESTADOS = ['en_ordeno','seca','pre_parto','no_aplica']
 
 export default function Animales() {
+  const navigate = useNavigate()
   const [animales, setAnimales] = useState([])
   const [fincas, setFincas] = useState([])
   const [filtroFinca, setFiltroFinca] = useState('')
@@ -15,10 +17,7 @@ export default function Animales() {
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
-    supabase.from('fincas').select('id,nombre').eq('activa', true).then(({ data, error }) => {
-      console.log('FINCAS data:', data, 'error:', error)
-      setFincas(data ?? [])
-    })
+    supabase.from('fincas').select('id,nombre').eq('activa', true).then(({ data }) => setFincas(data ?? []))
   }, [])
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export default function Animales() {
       ) : (
         <div className="space-y-2">
           {visibles.map(a => (
-            <div key={a.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <div key={a.id} onClick={() => navigate(`/animales/${a.id}`)} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow transition">
               <span className="text-2xl">{a.tipo === 'toro' ? '🐂' : '🐄'}</span>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-800 text-sm">{a.identificacion} {a.nombre ? `· ${a.nombre}` : ''}</div>
