@@ -9,6 +9,12 @@ const ROL_COLOR = {
   trabajador:  'bg-green-100 text-green-700',
   veterinario: 'bg-orange-100 text-orange-700',
 }
+const ROL_LABEL = {
+  propietario: 'Propietario',
+  mayordomo:   'Mayordomo',
+  trabajador:  'Trabajador',
+  veterinario: 'Veterinario',
+}
 
 export default function Usuarios() {
   const { perfil } = useAuth()
@@ -17,12 +23,14 @@ export default function Usuarios() {
   const [asignaciones, setAsignaciones] = useState([])
   const [cargando, setCargando] = useState(true)
   const [modalUsuario, setModalUsuario] = useState(false)
-  const [modalAsignacion, setModalAsignacion] = useState(null) // usuario seleccionado
+  const [modalAsignacion, setModalAsignacion] = useState(null)
+  const [modalEliminar, setModalEliminar] = useState(null)
   const [guardando, setGuardando] = useState(false)
-  const [form, setForm] = useState({ nombre: '', email: '', rol: 'trabajador' })
+  const [error, setError] = useState('')
   const [fincaAsignar, setFincaAsignar] = useState('')
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', rol: 'trabajador' })
 
-  const esPropietario = perfil?.rol === 'propietario'
+  const puedeGestionar = ['propietario', 'mayordomo'].includes(perfil?.rol)
 
   async function cargar() {
     setCargando(true)
@@ -42,12 +50,33 @@ export default function Usuarios() {
   async function guardarUsuario(e) {
     e.preventDefault()
     setGuardando(true)
-    // Solo inserta el perfil — el acceso de Auth lo crea el propietario manualmente
-    // o se puede usar Supabase Admin API. Por ahora creamos el perfil vacío.
-    await supabase.from('usuarios').insert({ ...form, activo: true })
+    setError('')
+    const { data, error: err } = await supabase.functions.invoke('gestionar-usuario', {
+      body: { accion: 'crear', ...form },
+    })
+    if (err || data?.error) {
+      setError(data?.error ?? err?.message ?? 'Error al crear usuario')
+      setGuardando(false)
+      return
+    }
     setGuardando(false)
     setModalUsuario(false)
-    setForm({ nombre: '', email: '', rol: 'trabajador' })
+    setForm({ nombre: '', email: '', password: '', rol: 'trabajador' })
+    cargar()
+  }
+
+  async function eliminarUsuario(usuario) {
+    setGuardando(true)
+    const { data, error: err } = await supabase.functions.invoke('gestionar-usuario', {
+      body: { accion: 'eliminar', user_id: usuario.id },
+    })
+    if (err || data?.error) {
+      alert(data?.error ?? err?.message ?? 'Error al eliminar')
+      setGuardando(false)
+      return
+    }
+    setGuardando(false)
+    setModalEliminar(null)
     cargar()
   }
 
@@ -64,13 +93,7 @@ export default function Usuarios() {
   }
 
   async function quitarAsignacion(usuarioId, fincaId) {
-    await supabase.from('asignaciones_finca')
-      .delete().eq('usuario_id', usuarioId).eq('finca_id', fincaId)
-    cargar()
-  }
-
-  async function toggleActivo(usuario) {
-    await supabase.from('usuarios').update({ activo: !usuario.activo }).eq('id', usuario.id)
+    await supabase.from('asignaciones_finca').delete().eq('usuario_id', usuarioId).eq('finca_id', fincaId)
     cargar()
   }
 
@@ -83,8 +106,8 @@ export default function Usuarios() {
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Equipo</h2>
-        {esPropietario && (
-          <button onClick={() => setModalUsuario(true)}
+        {puedeGestionar && (
+          <button onClick={() => { setError(''); setModalUsuario(true) }}
             className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
             + Agregar
           </button>
@@ -96,41 +119,42 @@ export default function Usuarios() {
       ) : (
         <div className="space-y-2">
           {usuarios.map(u => (
-            <div key={u.id} className={`bg-white border rounded-xl px-4 py-3 space-y-2 ${!u.activo ? 'opacity-50' : 'border-gray-200'}`}>
+            <div key={u.id} className="bg-white border border-gray-200 rounded-2xl px-4 py-3 space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-verde-100 flex items-center justify-center text-verde-700 font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-verde-100 flex items-center justify-center text-verde-700 font-bold text-sm flex-shrink-0">
                   {u.nombre.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-gray-800 text-sm">{u.nombre}</div>
                   <div className="text-xs text-gray-500">{u.email}</div>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROL_COLOR[u.rol] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {u.rol}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${ROL_COLOR[u.rol] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {ROL_LABEL[u.rol] ?? u.rol}
                 </span>
               </div>
 
               {/* Fincas asignadas */}
-              <div className="flex flex-wrap gap-1 pl-12">
+              <div className="flex flex-wrap gap-1 pl-13">
                 {fincasDeUsuario(u.id).map(f => (
                   <span key={f.id} className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                     {f.nombre}
-                    {esPropietario && u.rol !== 'propietario' && (
-                      <button onClick={() => quitarAsignacion(u.id, f.id)} className="text-gray-400 hover:text-red-500 ml-0.5">×</button>
+                    {puedeGestionar && u.rol !== 'propietario' && (
+                      <button onClick={() => quitarAsignacion(u.id, f.id)} className="text-gray-400 hover:text-red-500 ml-0.5 leading-none">×</button>
                     )}
                   </span>
                 ))}
-                {esPropietario && u.rol !== 'propietario' && (
+                {puedeGestionar && u.rol !== 'propietario' && (
                   <button onClick={() => setModalAsignacion(u)}
                     className="text-xs text-verde-600 hover:underline">+ Finca</button>
                 )}
               </div>
 
-              {esPropietario && u.id !== perfil.id && (
-                <div className="pl-12">
-                  <button onClick={() => toggleActivo(u)}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition">
-                    {u.activo ? 'Desactivar usuario' : 'Activar usuario'}
+              {/* Acciones */}
+              {puedeGestionar && u.id !== perfil.id && u.rol !== 'propietario' && (
+                <div className="pl-13 pt-1">
+                  <button onClick={() => setModalEliminar(u)}
+                    className="text-xs text-red-400 hover:text-red-600 transition">
+                    Eliminar usuario
                   </button>
                 </div>
               )}
@@ -144,28 +168,58 @@ export default function Usuarios() {
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setModalUsuario(false)}>
           <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-gray-800">Nuevo miembro del equipo</h3>
-            <p className="text-xs text-gray-500">
-              Después de guardar, ve a Supabase → Authentication → Add user para crear su acceso con ese mismo email.
-            </p>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={guardarUsuario} className="space-y-3">
-              <Campo label="Nombre completo *" value={form.nombre} onChange={v => setForm(f => ({...f, nombre: v}))} required />
-              <Campo label="Email *" value={form.email} onChange={v => setForm(f => ({...f, email: v}))} required />
+              <Campo label="Nombre completo *" value={form.nombre}
+                onChange={v => setForm(f => ({...f, nombre: v}))} required />
+              <Campo label="Email *" type="email" value={form.email}
+                onChange={v => setForm(f => ({...f, email: v}))} required />
+              <Campo label="Contraseña *" type="password" value={form.password}
+                onChange={v => setForm(f => ({...f, password: v}))} required
+                placeholder="Mínimo 6 caracteres" />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
                 <select value={form.rol} onChange={e => setForm(f => ({...f, rol: e.target.value}))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
-                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+                  {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r] ?? r}</option>)}
                 </select>
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setModalUsuario(false)}
-                  className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm">Cancelar</button>
+                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
                 <button type="submit" disabled={guardando}
-                  className="flex-1 bg-verde-600 text-white py-2 rounded-lg text-sm font-semibold disabled:opacity-50">
-                  {guardando ? 'Guardando...' : 'Guardar'}
+                  className="flex-1 bg-verde-600 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
+                  {guardando ? 'Creando...' : 'Crear usuario'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmar eliminar */}
+      {modalEliminar && (
+        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setModalEliminar(null)}>
+          <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-gray-800">Eliminar usuario</h3>
+            <p className="text-sm text-gray-600">
+              ¿Seguro que quieres eliminar a <span className="font-semibold">{modalEliminar.nombre}</span>?
+              Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setModalEliminar(null)}
+                className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
+              <button onClick={() => eliminarUsuario(modalEliminar)} disabled={guardando}
+                className="flex-1 bg-red-500 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
+                {guardando ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -177,19 +231,19 @@ export default function Usuarios() {
             <h3 className="font-bold text-gray-800">Asignar finca a {modalAsignacion.nombre}</h3>
             <div className="flex gap-2">
               <select value={fincaAsignar} onChange={e => setFincaAsignar(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+                className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
                 <option value="">Selecciona una finca...</option>
                 {fincas.filter(f => !fincasDeUsuario(modalAsignacion.id).find(x => x.id === f.id)).map(f => (
                   <option key={f.id} value={f.id}>{f.nombre}</option>
                 ))}
               </select>
               <button onClick={() => asignarFinca(modalAsignacion)} disabled={!fincaAsignar || guardando}
-                className="bg-verde-600 text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50">
+                className="bg-verde-600 text-white px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50">
                 Asignar
               </button>
             </div>
             <button onClick={() => setModalAsignacion(null)}
-              className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg text-sm">Cerrar</button>
+              className="w-full border border-gray-300 text-gray-700 py-2.5 rounded-xl text-sm">Cerrar</button>
           </div>
         </div>
       )}
@@ -197,12 +251,13 @@ export default function Usuarios() {
   )
 }
 
-function Campo({ label, value, onChange, required }) {
+function Campo({ label, value, onChange, required, type = 'text', placeholder }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input value={value} onChange={e => onChange(e.target.value)} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500" />
+      <input type={type} value={value} onChange={e => onChange(e.target.value)}
+        required={required} placeholder={placeholder}
+        className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500" />
     </div>
   )
 }
