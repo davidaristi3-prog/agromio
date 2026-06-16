@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 
-const META_LITROS_DIA = 10000
+const META_DEFAULT = 10000
 
 export default function Dashboard() {
   const { perfil } = useAuth()
@@ -11,6 +11,9 @@ export default function Dashboard() {
   const [finanzas, setFinanzas] = useState({ ingresos: 0, gastos: 0 })
   const [alertas, setAlertas] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [meta, setMeta] = useState(() => Number(localStorage.getItem('meta_litros') ?? META_DEFAULT))
+  const [editandoMeta, setEditandoMeta] = useState(false)
+  const [metaInput, setMetaInput] = useState('')
 
   useEffect(() => {
     async function cargar() {
@@ -69,9 +72,19 @@ export default function Dashboard() {
     cargar()
   }, [])
 
-  const pct = Math.min((resumen.litrosHoy / META_LITROS_DIA) * 100, 100)
+  const pct = Math.min((resumen.litrosHoy / meta) * 100, 100)
   const semaforoColor = pct >= 90 ? 'bg-green-500' : pct >= 70 ? 'bg-yellow-400' : 'bg-red-400'
   const semaforoTexto = pct >= 90 ? 'En meta 🟢' : pct >= 70 ? 'Cerca de la meta 🟡' : 'Por debajo de meta 🔴'
+
+  function guardarMeta(e) {
+    e.preventDefault()
+    const nueva = Number(metaInput)
+    if (nueva > 0) {
+      setMeta(nueva)
+      localStorage.setItem('meta_litros', nueva)
+    }
+    setEditandoMeta(false)
+  }
   const balance = finanzas.ingresos - finanzas.gastos
 
   const modulos = [
@@ -129,7 +142,19 @@ export default function Dashboard() {
           </div>
           <div className="flex justify-between text-xs text-gray-400">
             <span>0</span>
-            <span>Meta: {META_LITROS_DIA.toLocaleString()} L</span>
+            {editandoMeta ? (
+              <form onSubmit={guardarMeta} className="flex items-center gap-1">
+                <input autoFocus type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)}
+                  className="border border-gray-300 rounded px-2 py-0.5 w-24 text-xs text-gray-700 focus:outline-none" />
+                <button type="submit" className="text-verde-600 font-semibold text-xs">OK</button>
+                <button type="button" onClick={() => setEditandoMeta(false)} className="text-gray-400 text-xs">×</button>
+              </form>
+            ) : (
+              <button onClick={() => { setMetaInput(meta); setEditandoMeta(true) }}
+                className="text-gray-400 hover:text-verde-600 transition">
+                Meta: {meta.toLocaleString()} L ✏️
+              </button>
+            )}
           </div>
         </div>
       )}

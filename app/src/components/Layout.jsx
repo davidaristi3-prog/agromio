@@ -1,24 +1,17 @@
-import { NavLink, Outlet, Link } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const navPrincipal = [
   { to: '/',          icon: '🏠', label: 'Inicio'   },
   { to: '/animales',  icon: '🐄', label: 'Animales' },
-  { to: '/busqueda',  icon: '🔍', label: 'Buscar'   },
   { to: '/tareas',    icon: '✅', label: 'Tareas'   },
+  { to: '/ordenos',   icon: '🥛', label: 'Ordeños'  },
   { to: '/mas',       icon: '☰',  label: 'Más'      },
 ]
 
-const masModulos = [
-  { to: '/sanidad',     icon: '💉', label: 'Sanidad'      },
-  { to: '/reproduccion',icon: '🔬', label: 'Reproducción' },
-  { to: '/movimientos', icon: '🚛', label: 'Movimientos'  },
-  { to: '/fincas',      icon: '🏡', label: 'Fincas'       },
-  { to: '/equipo',      icon: '👥', label: 'Equipo'       },
-]
-
 export default function Layout() {
-  const { perfil, logout } = useAuth()
+  const { perfil } = useAuth()
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -26,10 +19,11 @@ export default function Layout() {
       <header className="bg-verde-700 text-white px-4 py-3 flex items-center justify-between shadow">
         <span className="font-bold text-lg">🐄 AGROMIO</span>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-verde-100">{perfil?.nombre}</span>
-          <button onClick={logout} className="text-xs bg-verde-800 hover:bg-verde-900 px-3 py-1 rounded-full transition">
-            Salir
+          <button onClick={() => navigate('/busqueda')}
+            className="text-white text-xl leading-none hover:text-verde-200 transition">
+            🔍
           </button>
+          <span className="text-sm text-verde-100">{perfil?.nombre}</span>
         </div>
       </header>
 
