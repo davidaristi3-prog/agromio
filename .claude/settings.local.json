@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "PowerShell(node -v)",
+      "PowerShell(npm -v)",
+      "PowerShell(Test-Path \"$env:ProgramFiles\\\\nodejs\\\\node.exe\"; Test-Path \"$env:LOCALAPPDATA\\\\Programs\\\\nodejs\\\\node.exe\"; Get-ChildItem \"$env:ProgramFiles\\\\nodejs\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Test-Path \"C:\\\\Users\\\\DA\\\\Desktop\\\\AGROMIO\\\\app\\\\.env\"; Get-Content \"C:\\\\Users\\\\DA\\\\Desktop\\\\AGROMIO\\\\app\\\\.env\" | ForEach-Object { if \\($_ -match \"VITE_SUPABASE_URL=\\(.+\\)\"\\) { \"URL encontrada: \" + $matches[1].Substring\\(0,30\\) + \"...\" } elseif \\($_ -match \"VITE_SUPABASE_ANON_KEY=\\(.{20}\\)\"\\) { \"KEY encontrada: \" + $matches[1] + \"...\" } })"
+    ]
+  }
+}
