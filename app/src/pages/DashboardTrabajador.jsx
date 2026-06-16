@@ -58,7 +58,7 @@ export default function DashboardTrabajador() {
         <div className="absolute -bottom-12 -left-8 w-40 h-40 rounded-full bg-white/5" />
         <p className="text-verde-200 text-sm mb-1">Hola {perfil?.nombre?.split(' ')[0]} 👋</p>
         <p className="text-white font-bold text-xl mb-4">¿Qué vas a registrar hoy?</p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="relative z-10 grid grid-cols-3 gap-2">
           <AccionRapida to="/ordenos" icon="🥛" label="Ordeño" />
           <AccionRapida to="/sanidad" icon="💉" label="Sanidad" />
           <AccionRapida to="/reproduccion" icon="🔬" label="Reproducción" />
