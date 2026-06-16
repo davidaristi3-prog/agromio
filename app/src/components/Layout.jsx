@@ -33,20 +33,20 @@ export default function Layout() {
       </main>
 
       {/* Barra de navegación inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around items-center px-2 pt-2 pb-6 shadow-lg">
         {navPrincipal.map(({ to, icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex flex-col items-center text-xs gap-0.5 px-3 py-1 rounded-lg transition ${
-                isActive ? 'text-verde-700 font-semibold' : 'text-gray-500'
+              `flex flex-col items-center text-xs gap-0.5 px-4 py-1.5 rounded-xl transition ${
+                isActive ? 'text-verde-700 font-semibold' : 'text-gray-400'
               }`
             }
           >
-            <span className="text-xl">{icon}</span>
-            {label}
+            <span className="text-2xl">{icon}</span>
+            <span className="text-[11px]">{label}</span>
           </NavLink>
         ))}
       </nav>

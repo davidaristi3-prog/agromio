@@ -72,8 +72,6 @@ export default function Dashboard() {
   const pct = Math.min((resumen.litrosHoy / meta) * 100, 100)
   const balance = finanzas.ingresos - finanzas.gastos
   const diffAyer = resumen.litrosHoy - resumen.litrosAyer
-  const semaforoLabel = pct >= 90 ? 'En meta' : pct >= 70 ? 'Cerca de la meta' : 'Por debajo de meta'
-  const heroBg = pct >= 90 ? 'from-green-600 to-green-700' : pct >= 70 ? 'from-yellow-500 to-yellow-600' : 'from-verde-700 to-verde-800'
 
   function guardarMeta(e) {
     e.preventDefault()
@@ -94,48 +92,67 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="space-y-4 pt-1">
+    <div className="space-y-4 pt-1 pb-2">
 
-      {/* Hero — producción del día */}
-      <div className={`bg-gradient-to-br ${heroBg} rounded-2xl p-5 text-white shadow-lg`}>
-        <div className="flex items-start justify-between mb-3">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl bg-verde-700 p-6 shadow-xl">
+        {/* Círculo decorativo de fondo */}
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
+        <div className="absolute -bottom-12 -left-8 w-40 h-40 rounded-full bg-white/5" />
+
+        <p className="text-verde-200 text-sm mb-4">Hola {perfil?.nombre?.split(' ')[0]} 👋</p>
+
+        <div className="flex items-end justify-between mb-5">
           <div>
-            <p className="text-green-100 text-sm font-medium">Hola {perfil?.nombre?.split(' ')[0]}</p>
-            <p className="text-white/70 text-xs">Producción de hoy</p>
-          </div>
-          <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{semaforoLabel}</span>
-        </div>
-
-        <div className="flex items-end gap-3 mb-4">
-          <span className="text-5xl font-bold tracking-tight">{cargando ? '—' : resumen.litrosHoy.toFixed(0)}</span>
-          <div className="mb-1">
-            <span className="text-xl text-white/80">L</span>
+            <p className="text-verde-300 text-xs uppercase tracking-widest mb-1">Producción hoy</p>
+            <div className="flex items-end gap-2">
+              <span className="text-7xl font-black text-white leading-none">
+                {cargando ? '—' : resumen.litrosHoy.toFixed(0)}
+              </span>
+              <span className="text-2xl text-verde-300 mb-2">L</span>
+            </div>
             {!cargando && resumen.litrosAyer > 0 && (
-              <div className={`text-xs mt-0.5 ${diffAyer >= 0 ? 'text-green-200' : 'text-red-200'}`}>
+              <p className={`text-sm mt-1 font-medium ${diffAyer >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                 {diffAyer >= 0 ? '▲' : '▼'} {Math.abs(diffAyer).toFixed(0)} L vs ayer
-              </div>
+              </p>
             )}
+          </div>
+
+          <div className="text-right">
+            <div className={`text-xs font-bold px-3 py-1.5 rounded-full mb-2 ${
+              pct >= 90 ? 'bg-green-400/30 text-green-200' :
+              pct >= 70 ? 'bg-yellow-400/30 text-yellow-200' :
+                          'bg-red-400/30 text-red-200'
+            }`}>
+              {pct >= 90 ? '🟢 En meta' : pct >= 70 ? '🟡 Cerca' : '🔴 Bajo'}
+            </div>
+            <p className="text-verde-400 text-xs">{Math.round(pct)}% de la meta</p>
           </div>
         </div>
 
         {/* Barra de progreso */}
-        <div className="w-full bg-white/20 rounded-full h-2 mb-2">
-          <div className="bg-white h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+        <div className="w-full bg-white/20 rounded-full h-3 mb-2">
+          <div
+            className={`h-3 rounded-full transition-all duration-700 ${
+              pct >= 90 ? 'bg-green-400' : pct >= 70 ? 'bg-yellow-400' : 'bg-red-400'
+            }`}
+            style={{ width: `${Math.max(pct, 2)}%` }}
+          />
         </div>
 
-        <div className="flex justify-between items-center text-xs text-white/60">
+        <div className="flex justify-between items-center text-xs text-verde-400">
           <span>0 L</span>
           {editandoMeta ? (
-            <form onSubmit={guardarMeta} className="flex items-center gap-1">
+            <form onSubmit={guardarMeta} className="flex items-center gap-2">
               <input autoFocus type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)}
-                className="bg-white/20 text-white placeholder-white/50 rounded px-2 py-0.5 w-24 text-xs focus:outline-none" />
-              <button type="submit" className="text-white font-semibold">OK</button>
-              <button type="button" onClick={() => setEditandoMeta(false)} className="text-white/60">×</button>
+                className="bg-white/20 text-white rounded-lg px-2 py-1 w-24 text-xs focus:outline-none focus:ring-1 focus:ring-white/40" />
+              <button type="submit" className="text-white font-bold text-xs bg-white/20 px-2 py-1 rounded-lg">OK</button>
+              <button type="button" onClick={() => setEditandoMeta(false)} className="text-verde-400">×</button>
             </form>
           ) : (
             <button onClick={() => { setMetaInput(meta); setEditandoMeta(true) }}
-              className="text-white/60 hover:text-white transition">
-              Meta: {meta.toLocaleString()} L ✏️
+              className="text-verde-400 hover:text-white transition flex items-center gap-1">
+              Meta: {meta.toLocaleString()} L <span className="text-[10px]">✏️</span>
             </button>
           )}
         </div>
@@ -145,10 +162,10 @@ export default function Dashboard() {
       {alertas.length > 0 && (
         <div className="space-y-2">
           {alertas.map((a, i) => (
-            <div key={i} className={`rounded-xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
-              a.color === 'red'    ? 'bg-red-50 text-red-700 border border-red-200' :
-              a.color === 'orange' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
-                                     'bg-yellow-50 text-yellow-700 border border-yellow-200'
+            <div key={i} className={`rounded-2xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
+              a.color === 'red'    ? 'bg-red-50 text-red-700 border border-red-100' :
+              a.color === 'orange' ? 'bg-orange-50 text-orange-700 border border-orange-100' :
+                                     'bg-yellow-50 text-yellow-700 border border-yellow-100'
             }`}>
               <span>{a.color === 'red' ? '🚨' : a.color === 'orange' ? '⚠️' : '📅'}</span>
               {a.texto}
@@ -166,8 +183,8 @@ export default function Dashboard() {
             { icon: '🥛', label: 'En ordeño', valor: resumen.enOrdeno },
           ].map(({ icon, label, valor }) => (
             <div key={label} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-              <div className="text-2xl mb-1">{icon}</div>
-              <div className="text-2xl font-bold text-gray-800">{valor}</div>
+              <div className="text-3xl mb-1">{icon}</div>
+              <div className="text-2xl font-black text-gray-800">{valor}</div>
               <div className="text-xs text-gray-400 mt-0.5">{label}</div>
             </div>
           ))}
@@ -178,19 +195,19 @@ export default function Dashboard() {
       {!cargando && (finanzas.ingresos > 0 || finanzas.gastos > 0) && (
         <Link to="/finanzas" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-gray-700">Finanzas este mes</span>
+            <span className="text-sm font-bold text-gray-700">💰 Finanzas este mes</span>
             <span className="text-xs text-gray-400">Ver detalle ›</span>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div>
+            <div className="bg-green-50 rounded-xl py-2">
               <div className="text-xs text-gray-400 mb-0.5">Ingresos</div>
               <div className="text-sm font-bold text-verde-700">${finanzas.ingresos.toLocaleString('es-CO')}</div>
             </div>
-            <div>
+            <div className="bg-red-50 rounded-xl py-2">
               <div className="text-xs text-gray-400 mb-0.5">Gastos</div>
               <div className="text-sm font-bold text-red-500">${finanzas.gastos.toLocaleString('es-CO')}</div>
             </div>
-            <div>
+            <div className={`rounded-xl py-2 ${balance >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
               <div className="text-xs text-gray-400 mb-0.5">Balance</div>
               <div className={`text-sm font-bold ${balance >= 0 ? 'text-verde-700' : 'text-red-500'}`}>
                 {balance >= 0 ? '+' : ''}${balance.toLocaleString('es-CO')}
@@ -202,17 +219,17 @@ export default function Dashboard() {
 
       {/* Módulos */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Módulos</p>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Módulos</p>
         <div className="space-y-2">
           {modulos.map(({ to, icon, label, desc }) => (
             <Link key={to} to={to}
-              className="bg-white rounded-2xl px-4 py-3 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow transition">
-              <span className="text-2xl w-8 text-center">{icon}</span>
+              className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-4 shadow-sm border border-gray-100 active:bg-gray-50 transition">
+              <span className="text-2xl w-9 text-center">{icon}</span>
               <div className="flex-1">
                 <div className="text-sm font-semibold text-gray-800">{label}</div>
                 <div className="text-xs text-gray-400">{desc}</div>
               </div>
-              <span className="text-gray-300 text-lg">›</span>
+              <span className="text-gray-300 text-xl">›</span>
             </Link>
           ))}
         </div>
