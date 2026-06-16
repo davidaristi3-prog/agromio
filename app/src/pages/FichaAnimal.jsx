@@ -15,6 +15,7 @@ export default function FichaAnimal() {
   const [movimientos, setMovimientos] = useState([])
   const [fotos, setFotos] = useState([])
   const [subiendo, setSubiendo] = useState(false)
+  const [fotoAmpliada, setFotoAmpliada] = useState(null)
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -152,22 +153,30 @@ export default function FichaAnimal() {
         <div className="space-y-3">
           <label className="block border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-verde-400 transition">
             <div className="text-3xl mb-1">📷</div>
-            <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : 'Toca para agregar foto'}</div>
-            <input type="file" accept="image/*" className="hidden"
-              onChange={e => e.target.files[0] && subirFoto(e.target.files[0])} disabled={subiendo} />
+            <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : fotos.length > 0 ? '+ Agregar foto' : 'Toca para agregar foto'}</div>
+            <input type="file" accept="image/*" multiple className="hidden"
+              onChange={e => Array.from(e.target.files).forEach(f => subirFoto(f))} disabled={subiendo} />
           </label>
           {fotos.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-4">Sin fotos aún</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {fotos.map(f => (
-                <div key={f.id} className="relative">
+                <div key={f.id} className="relative cursor-pointer" onClick={() => setFotoAmpliada(f.url)}>
                   <img src={f.url} alt="foto animal" className="w-full h-36 object-cover rounded-xl border border-gray-200" />
                   <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">{f.fecha}</div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Foto ampliada */}
+      {fotoAmpliada && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center" onClick={() => setFotoAmpliada(null)}>
+          <img src={fotoAmpliada} alt="foto ampliada" className="max-w-full max-h-full object-contain rounded-xl" />
+          <button className="absolute top-4 right-4 text-white text-3xl leading-none">×</button>
         </div>
       )}
 
