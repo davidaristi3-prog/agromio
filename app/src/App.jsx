@@ -15,6 +15,7 @@ import Mas from './pages/Mas'
 import Inventario from './pages/Inventario'
 import FichaAnimal from './pages/FichaAnimal'
 import Reportes from './pages/Reportes'
+import Finanzas from './pages/Finanzas'
 
 function Rutas() {
   const { session } = useAuth()
@@ -42,6 +43,7 @@ function Rutas() {
           <Route path="/inventario"   element={<Inventario />}  />
           <Route path="/animales/:id" element={<FichaAnimal />} />
           <Route path="/reportes"    element={<Reportes />}   />
+          <Route path="/finanzas"    element={<Finanzas />}   />
           <Route path="*"             element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
