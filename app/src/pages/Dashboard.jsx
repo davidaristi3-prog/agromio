@@ -88,7 +88,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-5 pt-2">
       <div>
-        <h2 className="text-xl font-bold text-gray-800">Hola, {perfil?.nombre?.split(' ')[0]} 👋</h2>
+        <h2 className="text-xl font-bold text-gray-800">Hola {perfil?.nombre?.split(' ')[0]}</h2>
         <p className="text-gray-500 text-sm capitalize">
           {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
         </p>
