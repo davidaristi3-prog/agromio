@@ -5,6 +5,7 @@ const modulos = [
   { to: '/sanidad',     icon: '💉', label: 'Sanidad',       desc: 'Tratamientos, vacunas, retiro de leche' },
   { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
   { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
+  { to: '/inventario',  icon: '📦', label: 'Inventario',    desc: 'Medicamentos, concentrado, minerales' },
   { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Gestión de fincas y lotes/potreros' },
   { to: '/equipo',      icon: '👥', label: 'Equipo',        desc: 'Mayordomos, trabajadores y asignaciones' },
 ]
