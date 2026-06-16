@@ -153,7 +153,7 @@ export default function FichaAnimal() {
           <label className="block border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-verde-400 transition">
             <div className="text-3xl mb-1">📷</div>
             <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : 'Toca para agregar foto'}</div>
-            <input type="file" accept="image/*" capture="environment" className="hidden"
+            <input type="file" accept="image/*" className="hidden"
               onChange={e => e.target.files[0] && subirFoto(e.target.files[0])} disabled={subiendo} />
           </label>
           {fotos.length === 0 ? (
