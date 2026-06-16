@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const modulos = [
+const MODULOS_PROPIETARIO = [
   { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
   { to: '/reportes',    icon: '📊', label: 'Reportes',      desc: 'Producción, tareas y estadísticas' },
   { to: '/finanzas',    icon: '💰', label: 'Finanzas',      desc: 'Ingresos, gastos y costo por litro' },
@@ -13,8 +13,28 @@ const modulos = [
   { to: '/equipo',      icon: '👥', label: 'Equipo',        desc: 'Mayordomos, trabajadores y asignaciones' },
 ]
 
+const MODULOS_MAYORDOMO = [
+  { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
+  { to: '/sanidad',     icon: '💉', label: 'Sanidad',       desc: 'Tratamientos, vacunas, retiro de leche' },
+  { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
+  { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
+  { to: '/inventario',  icon: '📦', label: 'Inventario',    desc: 'Medicamentos, concentrado, minerales' },
+  { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Gestión de fincas y lotes/potreros' },
+]
+
+const MODULOS_TRABAJADOR = [
+  { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
+  { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Ver fincas y lotes' },
+  { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados del hato' },
+]
+
 export default function Mas() {
   const { perfil, logout } = useAuth()
+
+  const modulos =
+    perfil?.rol === 'trabajador' ? MODULOS_TRABAJADOR :
+    perfil?.rol === 'mayordomo'  ? MODULOS_MAYORDOMO  :
+    MODULOS_PROPIETARIO
 
   return (
     <div className="space-y-4 pt-2">
