@@ -46,7 +46,7 @@ export default function Busqueda() {
           autoFocus
           value={texto}
           onChange={e => buscar(e.target.value)}
-          placeholder="Buscar animal, tarea, insumo..."
+          placeholder="Buscar animal, actividad, insumo..."
           className="w-full border border-gray-300 rounded-xl pl-9 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500"
         />
         {texto && (
@@ -75,7 +75,7 @@ export default function Busqueda() {
             )}
 
             {resultados.tareas.length > 0 && (
-              <Grupo titulo="✅ Tareas pendientes">
+              <Grupo titulo="✅ Actividades pendientes">
                 {resultados.tareas.map(t => (
                   <Fila key={t.id} onClick={() => navigate('/tareas')}>
                     <div className="font-semibold text-sm text-gray-800">{t.titulo}</div>

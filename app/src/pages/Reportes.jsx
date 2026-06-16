@@ -151,7 +151,7 @@ export default function Reportes() {
           </Seccion>
 
           {/* Tareas */}
-          <Seccion titulo="✅ Tareas">
+          <Seccion titulo="✅ Actividades">
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Total creadas" valor={datos.totalTareas} />
               <Stat label="Completadas" valor={datos.tareasCompletas} color="green" />
@@ -196,8 +196,8 @@ function exportarCSV(datos) {
     ['Total litros', datos.totalLitros.toFixed(1)],
     ['Promedio diario (L)', datos.promDiario.toFixed(1)],
     ['Mejor día (L)', datos.maxDia.toFixed(1)],
-    ['Tareas creadas', datos.totalTareas],
-    ['Tareas completadas', datos.tareasCompletas],
+    ['Actividades creadas', datos.totalTareas],
+    ['Actividades completadas', datos.tareasCompletas],
     ['Eventos sanidad', datos.sanitarios],
     ['Servicios reproductivos', datos.servicios],
     ['Partos', datos.partos],

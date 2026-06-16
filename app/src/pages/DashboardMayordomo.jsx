@@ -53,7 +53,7 @@ export default function DashboardMayordomo() {
 
     const nuevasAlertas = []
     retiros?.forEach(a => nuevasAlertas.push({ texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
-    if (tareasVencidas > 0) nuevasAlertas.push({ texto: `${tareasVencidas} tarea(s) vencida(s) en tu finca`, color: 'orange' })
+    if (tareasVencidas > 0) nuevasAlertas.push({ texto: `${tareasVencidas} actividad(es) vencida(s) en tu finca`, color: 'orange' })
     setAlertas(nuevasAlertas)
     setCargando(false)
   }
@@ -75,7 +75,7 @@ export default function DashboardMayordomo() {
 
   const modulos = [
     { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato y fichas' },
-    { to: '/tareas',       icon: '✅', label: 'Tareas',       desc: 'Gestionar tareas' },
+    { to: '/tareas',       icon: '✅', label: 'Actividades',       desc: 'Gestionar actividades' },
     { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
     { to: '/sanidad',      icon: '💉', label: 'Sanidad',      desc: 'Tratamientos y vacunas' },
     { to: '/reproduccion', icon: '🔬', label: 'Reproducción', desc: 'Servicios y partos' },

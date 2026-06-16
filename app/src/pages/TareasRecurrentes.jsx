@@ -15,7 +15,7 @@ async function notificarCompletacion(tarea, trabajador) {
       await supabase.functions.invoke('notificar-tarea', {
         body: {
           asignado_a: uid,
-          titulo: '✅ Tarea completada',
+          titulo: '✅ Actividad completada',
           descripcion: `${trabajador.nombre} completó: ${tarea.titulo}`,
         },
       })
@@ -31,7 +31,7 @@ export default function TareasRecurrentes() {
 
   return (
     <div className="space-y-4 pt-2">
-      <h2 className="text-xl font-bold text-gray-800">Tareas recurrentes</h2>
+      <h2 className="text-xl font-bold text-gray-800">Actividades recurrentes</h2>
       <div className="flex bg-gray-100 rounded-xl p-1">
         {[['hoy', 'Hoy'], ['gestionar', 'Gestionar']].map(([v, l]) => (
           <button key={v} onClick={() => setVista(v)}
@@ -80,7 +80,7 @@ function VistaTrabajador({ perfil }) {
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Mis tareas de hoy</h2>
+        <h2 className="text-xl font-bold text-gray-800">Mis actividades de hoy</h2>
         <span className="text-sm text-gray-500">{hechas.length}/{tareas.length} hechas</span>
       </div>
 
@@ -94,14 +94,14 @@ function VistaTrabajador({ perfil }) {
       {cargando ? <p className="text-gray-400 text-sm">Cargando...</p> : tareas.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-4xl mb-3">📋</p>
-          <p className="text-gray-400 text-sm">No tienes tareas asignadas</p>
+          <p className="text-gray-400 text-sm">No tienes actividades asignadas</p>
         </div>
       ) : (
         <>
           {hechas.length === tareas.length && (
             <div className="bg-verde-50 border border-verde-200 rounded-2xl p-5 text-center">
               <p className="text-4xl mb-2">🎉</p>
-              <p className="text-verde-800 font-bold text-sm">¡Todas las tareas completadas!</p>
+              <p className="text-verde-800 font-bold text-sm">¡Todas las actividades completadas!</p>
             </div>
           )}
 
@@ -340,7 +340,7 @@ function VistaHoyGestor() {
   if (datos.length === 0) return (
     <div className="text-center py-12">
       <p className="text-4xl mb-3">📋</p>
-      <p className="text-gray-400 text-sm">No hay tareas recurrentes asignadas</p>
+      <p className="text-gray-400 text-sm">No hay actividades recurrentes asignadas</p>
     </div>
   )
 
@@ -437,15 +437,15 @@ function VistaGestionar({ perfil }) {
       <div className="flex justify-end">
         <button onClick={() => setModal(true)}
           className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-          + Nueva tarea
+          + Nueva actividad
         </button>
       </div>
 
       {cargando ? <p className="text-gray-400 text-sm">Cargando...</p> : tareas.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-4xl mb-3">🔄</p>
-          <p className="text-gray-400 text-sm">No hay tareas recurrentes</p>
-          <p className="text-xs text-gray-300 mt-1">Crea tareas que se repiten cada día</p>
+          <p className="text-gray-400 text-sm">No hay actividades recurrentes</p>
+          <p className="text-xs text-gray-300 mt-1">Crea actividades que se repiten cada día</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -467,7 +467,7 @@ function VistaGestionar({ perfil }) {
       {modal && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-gray-800">Nueva tarea recurrente</h3>
+            <h3 className="font-bold text-gray-800">Nueva actividad recurrente</h3>
             <form onSubmit={guardar} className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>

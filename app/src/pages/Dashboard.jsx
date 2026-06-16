@@ -60,7 +60,7 @@ export default function Dashboard() {
 
       const nuevasAlertas = []
       retiros?.forEach(a => nuevasAlertas.push({ tipo: 'retiro', texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
-      tareasVencidas?.forEach(t => nuevasAlertas.push({ tipo: 'tarea', texto: `Tarea vencida: ${t.titulo}`, color: 'orange' }))
+      tareasVencidas?.forEach(t => nuevasAlertas.push({ tipo: 'tarea', texto: `Actividad vencida: ${t.titulo}`, color: 'orange' }))
       partosProximos?.forEach(p => nuevasAlertas.push({ tipo: 'parto', texto: `Parto próximo: ${p.animales?.identificacion ?? '?'} el ${p.fecha_probable_parto}`, color: 'yellow' }))
       stockBajo?.forEach(i => nuevasAlertas.push({ tipo: 'stock', texto: `Stock bajo: ${i.nombre} (${i.stock_actual} unidades)`, color: 'orange' }))
       setAlertas(nuevasAlertas)
@@ -82,7 +82,7 @@ export default function Dashboard() {
 
   const modulos = [
     { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato y fichas' },
-    { to: '/tareas',       icon: '✅', label: 'Tareas',       desc: 'Pendientes y asignadas' },
+    { to: '/tareas',       icon: '✅', label: 'Actividades',       desc: 'Pendientes y asignadas' },
     { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
     { to: '/sanidad',      icon: '💉', label: 'Sanidad',      desc: 'Tratamientos y vacunas' },
     { to: '/reproduccion', icon: '🔬', label: 'Reproducción', desc: 'Servicios y partos' },

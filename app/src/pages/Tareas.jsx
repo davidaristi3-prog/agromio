@@ -115,7 +115,7 @@ export default function Tareas() {
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Tareas</h2>
+        <h2 className="text-xl font-bold text-gray-800">Actividades</h2>
         {esPropietarioOMayordomo && (
           <button onClick={() => setModalAbierto(true)}
             className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
@@ -127,7 +127,7 @@ export default function Tareas() {
       {cargando ? (
         <p className="text-gray-400 text-sm">Cargando...</p>
       ) : tareas.length === 0 ? (
-        <p className="text-gray-400 text-sm text-center py-8">No hay tareas asignadas</p>
+        <p className="text-gray-400 text-sm text-center py-8">No hay actividades asignadas</p>
       ) : (
         <div className="space-y-2">
           {tareas.map(t => (
@@ -208,7 +208,7 @@ export default function Tareas() {
       {modalAbierto && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setModalAbierto(false)}>
           <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-gray-800">Nueva tarea</h3>
+            <h3 className="font-bold text-gray-800">Nueva actividad</h3>
             <form onSubmit={guardar} className="space-y-3">
               <Campo label="Título *" value={form.titulo} onChange={v => setForm(f => ({...f, titulo: v}))} required />
               <Campo label="Descripción" value={form.descripcion} onChange={v => setForm(f => ({...f, descripcion: v}))} />

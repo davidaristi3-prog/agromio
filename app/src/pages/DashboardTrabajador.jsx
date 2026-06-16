@@ -41,9 +41,9 @@ export default function DashboardTrabajador() {
   const hoy = new Date().toISOString().split('T')[0]
 
   const modulos = [
-    { to: '/tareas-recurrentes', icon: '🔄', label: 'Tareas del día',  desc: 'Tus actividades diarias' },
+    { to: '/tareas-recurrentes', icon: '🔄', label: 'Actividades del día',  desc: 'Tus actividades diarias' },
     { to: '/animales',           icon: '🐄', label: 'Animales',        desc: 'Consultar hato y fichas' },
-    { to: '/tareas',             icon: '✅', label: 'Tareas asignadas',desc: 'Ver y completar tareas' },
+    { to: '/tareas',             icon: '✅', label: 'Actividades asignadas',desc: 'Ver y completar actividades' },
     { to: '/ordenos',            icon: '🥛', label: 'Ordeños',         desc: 'Registrar producción' },
     { to: '/sanidad',            icon: '💉', label: 'Sanidad',         desc: 'Registrar eventos' },
     { to: '/reproduccion',       icon: '🔬', label: 'Reproducción',    desc: 'Registrar eventos' },
@@ -83,13 +83,13 @@ export default function DashboardTrabajador() {
 
       {/* Mis tareas pendientes */}
       <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Mis tareas pendientes</p>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Mis actividades pendientes</p>
         {cargando ? (
           <p className="text-gray-400 text-sm px-1">Cargando...</p>
         ) : tareas.length === 0 ? (
           <div className="bg-white rounded-2xl p-6 text-center border border-gray-100">
             <p className="text-3xl mb-2">🎉</p>
-            <p className="text-sm text-gray-500">Sin tareas pendientes</p>
+            <p className="text-sm text-gray-500">Sin actividades pendientes</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -108,7 +108,7 @@ export default function DashboardTrabajador() {
               )
             })}
             <Link to="/tareas" className="block text-center text-sm text-verde-600 font-medium py-2">
-              Ver todas las tareas ›
+              Ver todas las actividades ›
             </Link>
           </div>
         )}
