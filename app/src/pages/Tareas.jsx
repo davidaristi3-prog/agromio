@@ -155,7 +155,7 @@ export default function Tareas() {
                 ? <audio controls src={detalle.nota_voz_url} className="w-full" />
                 : <label className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-sm text-gray-400 cursor-pointer hover:border-verde-400 transition">
                     Toca para subir audio
-                    <input type="file" accept="audio/*" capture="microphone" className="hidden"
+                    <input type="file" accept="audio/*" className="hidden"
                       onChange={e => e.target.files[0] && subirArchivo(detalle.id, 'nota_voz_url', 'notas-voz', e.target.files[0])} />
                   </label>
               }
