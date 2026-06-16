@@ -42,13 +42,11 @@ export default function Dashboard() {
           .gte('fecha_probable_parto', hoy)
           .lte('fecha_probable_parto', new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
           .limit(5),
-        supabase.from('inventario').select('nombre,stock_actual,stock_minimo').lte('stock_actual', supabase.raw ? undefined : -1),
+        supabase.from('inventario_insumos').select('nombre,stock_actual,stock_minimo'),
         supabase.from('transacciones').select('tipo,valor').gte('fecha', inicioMes),
       ])
 
-      // Stock bajo: filtrar en cliente porque supabase no soporta comparación entre columnas sin RPC
-      const stockBajo = (await supabase.from('inventario').select('nombre,stock_actual,stock_minimo')).data
-        ?.filter(i => Number(i.stock_actual) <= Number(i.stock_minimo)) ?? []
+      const stockBajo = insumosBajos?.filter(i => Number(i.stock_actual) <= Number(i.stock_minimo)) ?? []
 
       const litrosHoy  = ordenosHoy?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
       const litrosAyer = ordenosAyer?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
