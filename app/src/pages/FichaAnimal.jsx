@@ -131,6 +131,15 @@ export default function FichaAnimal() {
       {/* Contenido por tab */}
       {tab === 'Resumen' && (
         <div className="space-y-4">
+          {fotos.length > 0 && (
+            <div className="relative cursor-pointer" onClick={() => setTab('Fotos')}>
+              <img src={fotos[fotos.length - 1].url} alt="foto animal"
+                className="w-full h-48 object-cover rounded-xl border border-gray-200" />
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">
+                📷 {fotos.length} foto{fotos.length > 1 ? 's' : ''} · Ver todas
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <InfoCard label="Nacimiento" valor={animal.fecha_nacimiento ?? '—'} />
             <InfoCard label="Edad" valor={edad !== null ? `${edad} años` : '—'} />
@@ -151,12 +160,6 @@ export default function FichaAnimal() {
 
       {tab === 'Fotos' && (
         <div className="space-y-3">
-          <label className="block border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-verde-400 transition">
-            <div className="text-3xl mb-1">📷</div>
-            <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : fotos.length > 0 ? '+ Agregar foto' : 'Toca para agregar foto'}</div>
-            <input type="file" accept="image/*" multiple className="hidden"
-              onChange={e => Array.from(e.target.files).forEach(f => subirFoto(f))} disabled={subiendo} />
-          </label>
           {fotos.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-4">Sin fotos aún</p>
           ) : (
@@ -169,6 +172,12 @@ export default function FichaAnimal() {
               ))}
             </div>
           )}
+          <label className="block border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-verde-400 transition">
+            <div className="text-2xl mb-1">📷</div>
+            <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : '+ Agregar foto'}</div>
+            <input type="file" accept="image/*" multiple className="hidden"
+              onChange={e => Array.from(e.target.files).forEach(f => subirFoto(f))} disabled={subiendo} />
+          </label>
         </div>
       )}
 
