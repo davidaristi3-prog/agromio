@@ -47,37 +47,47 @@ export default function Usuarios() {
 
   useEffect(() => { cargar() }, [])
 
+  async function invocarFuncion(body) {
+    const { data, error: fnErr } = await supabase.functions.invoke('gestionar-usuario', { body })
+    if (data?.error) throw new Error(data.error)
+    if (fnErr) {
+      // Intentar extraer el mensaje real del cuerpo de la respuesta
+      try {
+        const json = await fnErr.context?.json?.()
+        if (json?.error) throw new Error(json.error)
+      } catch (e) {
+        if (e instanceof Error && e.message !== fnErr.message) throw e
+      }
+      throw new Error(fnErr.message)
+    }
+    return data
+  }
+
   async function guardarUsuario(e) {
     e.preventDefault()
     setGuardando(true)
     setError('')
-    const { data, error: err } = await supabase.functions.invoke('gestionar-usuario', {
-      body: { accion: 'crear', ...form },
-    })
-    if (err || data?.error) {
-      setError(data?.error ?? err?.message ?? 'Error al crear usuario')
-      setGuardando(false)
-      return
+    try {
+      await invocarFuncion({ accion: 'crear', ...form })
+      setModalUsuario(false)
+      setForm({ nombre: '', email: '', password: '', rol: 'trabajador' })
+      cargar()
+    } catch (e) {
+      setError(e.message)
     }
     setGuardando(false)
-    setModalUsuario(false)
-    setForm({ nombre: '', email: '', password: '', rol: 'trabajador' })
-    cargar()
   }
 
   async function eliminarUsuario(usuario) {
     setGuardando(true)
-    const { data, error: err } = await supabase.functions.invoke('gestionar-usuario', {
-      body: { accion: 'eliminar', user_id: usuario.id },
-    })
-    if (err || data?.error) {
-      alert(data?.error ?? err?.message ?? 'Error al eliminar')
-      setGuardando(false)
-      return
+    try {
+      await invocarFuncion({ accion: 'eliminar', user_id: usuario.id })
+      setModalEliminar(null)
+      cargar()
+    } catch (e) {
+      alert(e.message)
     }
     setGuardando(false)
-    setModalEliminar(null)
-    cargar()
   }
 
   async function asignarFinca(usuario) {
