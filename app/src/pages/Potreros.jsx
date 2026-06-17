@@ -84,8 +84,10 @@ export default function Potreros() {
   // ── Inicializar el mapa (una vez) ──
   useEffect(() => {
     if (!TOKEN || mapRef.current || !contRef.current) return
+    let map
+    try {
     mapboxgl.accessToken = TOKEN
-    const map = new mapboxgl.Map({
+    map = new mapboxgl.Map({
       container: contRef.current,
       style: 'mapbox://styles/mapbox/satellite-streets-v12',
       center: [-75.5, 6.2], // Antioquia por defecto
@@ -141,7 +143,11 @@ export default function Potreros() {
       setTimeout(() => map.resize(), 300)
     })
 
-    return () => { map.remove(); mapRef.current = null }
+    } catch (err) {
+      setMapError('No se pudo iniciar el mapa: ' + (err?.message || String(err)))
+      return
+    }
+    return () => { try { map?.remove() } catch { /* noop */ } mapRef.current = null }
   }, [])
 
   // ── Cargar potreros + lotes de la finca ──
