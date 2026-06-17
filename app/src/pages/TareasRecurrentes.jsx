@@ -392,6 +392,7 @@ function VistaGestionar({ perfil }) {
   const [cargando, setCargando] = useState(true)
   const [modal, setModal] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [errorForm, setErrorForm] = useState('')
   const [form, setForm] = useState({ titulo: '', descripcion: '', asignado_a: '', finca_id: '' })
 
   async function cargar() {
@@ -414,14 +415,17 @@ function VistaGestionar({ perfil }) {
   async function guardar(e) {
     e.preventDefault()
     setGuardando(true)
-    await supabase.from('tareas_recurrentes').insert({
+    setErrorForm('')
+    const { error } = await supabase.from('tareas_recurrentes').insert({
       titulo: form.titulo,
       descripcion: form.descripcion || null,
-      asignado_a: form.asignado_a,
+      asignado_a: form.asignado_a || null,
       finca_id: form.finca_id || null,
       creado_por: perfil.id,
+      activa: true,
     })
     setGuardando(false)
+    if (error) { setErrorForm(error.message); return }
     setModal(false)
     setForm({ titulo: '', descripcion: '', asignado_a: '', finca_id: '' })
     cargar()
@@ -468,6 +472,9 @@ function VistaGestionar({ perfil }) {
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-gray-800">Nueva actividad recurrente</h3>
+            {errorForm && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-600">{errorForm}</div>
+            )}
             <form onSubmit={guardar} className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
