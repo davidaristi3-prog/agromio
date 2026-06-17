@@ -17,7 +17,9 @@ export default function Layout() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
       <header className="bg-verde-700 text-white px-4 py-3 flex items-center justify-between shadow">
-        <span className="font-bold text-lg">🐄 AGROMIO</span>
+        <button onClick={() => navigate('/')} className="font-bold text-lg hover:text-verde-200 transition">
+          🐄 AGROMIO
+        </button>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/busqueda')}
             className="text-white text-xl leading-none hover:text-verde-200 transition">
