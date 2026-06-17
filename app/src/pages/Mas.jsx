@@ -12,11 +12,13 @@ const MODULOS_PROPIETARIO = [
   { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Gestión de fincas y lotes/potreros' },
   { to: '/equipo',             icon: '👥', label: 'Equipo',             desc: 'Mayordomos, trabajadores y asignaciones' },
   { to: '/tareas-recurrentes', icon: '🔄', label: 'Actividades recurrentes', desc: 'Ver y gestionar actividades diarias del equipo' },
+  { to: '/historial',          icon: '📋', label: 'Historial de aprobaciones', desc: 'Registros aprobados y rechazados' },
 ]
 
 const MODULOS_MAYORDOMO = [
   { to: '/perfil',               icon: '👤', label: 'Mi perfil',          desc: 'Información personal y contraseña' },
   { to: '/tareas-recurrentes',   icon: '🔄', label: 'Actividades recurrentes', desc: 'Ver y gestionar actividades diarias del equipo' },
+  { to: '/historial',            icon: '📋', label: 'Historial de aprobaciones', desc: 'Registros aprobados y rechazados' },
   { to: '/sanidad',              icon: '💉', label: 'Sanidad',            desc: 'Tratamientos, vacunas, retiro de leche' },
   { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
   { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },

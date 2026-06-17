@@ -59,6 +59,20 @@ export default function DashboardMayordomo() {
     setCargando(false)
   }
 
+  async function aprobarTodo() {
+    const porTabla = {}
+    pendientes.forEach(p => {
+      if (!porTabla[p._tabla]) porTabla[p._tabla] = []
+      porTabla[p._tabla].push(p.id)
+    })
+    await Promise.all(
+      Object.entries(porTabla).map(([tabla, ids]) =>
+        supabase.from(tabla).update({ estado: 'aprobado', aprobado_por: perfil.id }).in('id', ids)
+      )
+    )
+    setPendientes([])
+  }
+
   async function aprobar(item) {
     setAprobando(item.id)
     await supabase.from(item._tabla).update({ estado: 'aprobado', aprobado_por: perfil.id }).eq('id', item.id)
@@ -124,9 +138,15 @@ export default function DashboardMayordomo() {
       {/* Bandeja de aprobación */}
       {pendientes.length > 0 && (
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">
-            Por aprobar ({pendientes.length})
-          </p>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Por aprobar ({pendientes.length})
+            </p>
+            <button onClick={aprobarTodo}
+              className="text-xs bg-verde-600 text-white px-3 py-1 rounded-lg font-semibold">
+              Aprobar todo
+            </button>
+          </div>
           <div className="space-y-2">
             {pendientes.map(item => (
               <div key={item.id} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-yellow-200">

@@ -80,6 +80,22 @@ export default function Dashboard() {
   const balance = finanzas.ingresos - finanzas.gastos
   const diffAyer = resumen.litrosHoy - resumen.litrosAyer
 
+  async function aprobarTodo() {
+    setAprobando('all')
+    const porTabla = {}
+    pendientes.forEach(p => {
+      if (!porTabla[p._tabla]) porTabla[p._tabla] = []
+      porTabla[p._tabla].push(p.id)
+    })
+    await Promise.all(
+      Object.entries(porTabla).map(([tabla, ids]) =>
+        supabase.from(tabla).update({ estado: 'aprobado', aprobado_por: perfil.id }).in('id', ids)
+      )
+    )
+    setAprobando(null)
+    setPendientes([])
+  }
+
   async function aprobar(item) {
     setAprobando(item.id)
     await supabase.from(item._tabla).update({ estado: 'aprobado', aprobado_por: perfil.id }).eq('id', item.id)
@@ -202,7 +218,11 @@ export default function Dashboard() {
           <div className="px-4 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
             <span className="text-amber-500 text-lg">⏳</span>
             <span className="text-sm font-bold text-amber-800">Pendientes de aprobación</span>
-            <span className="ml-auto bg-amber-200 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendientes.length}</span>
+            <span className="bg-amber-200 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendientes.length}</span>
+            <button onClick={aprobarTodo} disabled={aprobando === 'all'}
+              className="ml-auto text-xs bg-verde-600 text-white px-3 py-1 rounded-lg font-semibold disabled:opacity-50">
+              {aprobando === 'all' ? '...' : 'Aprobar todo'}
+            </button>
           </div>
           <div className="divide-y divide-gray-100">
             {pendientes.map(item => (
