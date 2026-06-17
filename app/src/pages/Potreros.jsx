@@ -221,49 +221,51 @@ export default function Potreros() {
         )}
       </div>
 
-      {fincas.length === 0 ? (
-        <p className="text-gray-400 text-sm text-center py-8">Primero crea una finca en el módulo Fincas.</p>
-      ) : (
-        <>
-          <select value={fincaId} onChange={e => setFincaId(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
-            {fincas.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-          </select>
+      {fincas.length === 0 && (
+        <p className="text-gray-400 text-sm text-center">Aún no tienes fincas. Crea una en el módulo Fincas para guardar potreros.</p>
+      )}
 
-          {enPotrero && (
-            <div className="bg-verde-600 text-white rounded-xl px-4 py-2 text-sm font-semibold flex items-center gap-2">
-              📍 Estás en: {enPotrero}
-            </div>
-          )}
+      {fincas.length > 0 && (
+        <select value={fincaId} onChange={e => setFincaId(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+          {fincas.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
+        </select>
+      )}
 
-          {mapError && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-              <p className="font-semibold mb-0.5">El mapa reportó un error:</p>
-              <p className="break-words">{mapError}</p>
-              <p className="text-xs text-red-500 mt-1">Si menciona "Unauthorized" o "401", el token de Mapbox es inválido o tiene restricciones.</p>
-            </div>
-          )}
-          <div ref={contRef} className="w-full h-[62vh] rounded-xl overflow-hidden border border-gray-200 bg-gray-100" />
+      {enPotrero && (
+        <div className="bg-verde-600 text-white rounded-xl px-4 py-2 text-sm font-semibold flex items-center gap-2">
+          📍 Estás en: {enPotrero}
+        </div>
+      )}
 
-          <p className="text-xs text-gray-400 text-center">
-            {puedeEditar
-              ? 'Toca "Dibujar potrero", marca las esquinas siguiendo las cercas y cierra tocando el primer punto. Usa 📍 para ubicarte.'
-              : 'Toca 📍 (arriba a la derecha) para ver en qué potrero estás.'}
-          </p>
+      {mapError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+          <p className="font-semibold mb-0.5">El mapa reportó un error:</p>
+          <p className="break-words">{mapError}</p>
+          <p className="text-xs text-red-500 mt-1">Si menciona "Unauthorized" o "401", el token de Mapbox es inválido o tiene restricciones.</p>
+        </div>
+      )}
 
-          {potreros.length > 0 && (
-            <div className="space-y-1.5">
-              {potreros.map(p => (
-                <button key={p.id} onClick={() => setSeleccion(p)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 flex items-center gap-3 text-left hover:shadow transition">
-                  <span className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: p.color }} />
-                  <span className="flex-1 text-sm font-semibold text-gray-800">{p.nombre}</span>
-                  <span className="text-xs text-gray-400">{p.area_ha ? `${Number(p.area_ha).toFixed(2)} ha` : ''}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </>
+      {/* El recuadro del mapa SIEMPRE se renderiza para que el mapa arranque al cargar */}
+      <div ref={contRef} className="w-full h-[62vh] rounded-xl overflow-hidden border border-gray-200 bg-gray-100" />
+
+      <p className="text-xs text-gray-400 text-center">
+        {puedeEditar
+          ? 'Toca "Dibujar potrero", marca las esquinas siguiendo las cercas y cierra tocando el primer punto. Usa 📍 para ubicarte.'
+          : 'Toca 📍 (arriba a la derecha) para ver en qué potrero estás.'}
+      </p>
+
+      {potreros.length > 0 && (
+        <div className="space-y-1.5">
+          {potreros.map(p => (
+            <button key={p.id} onClick={() => setSeleccion(p)}
+              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 flex items-center gap-3 text-left hover:shadow transition">
+              <span className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: p.color }} />
+              <span className="flex-1 text-sm font-semibold text-gray-800">{p.nombre}</span>
+              <span className="text-xs text-gray-400">{p.area_ha ? `${Number(p.area_ha).toFixed(2)} ha` : ''}</span>
+            </button>
+          ))}
+        </div>
       )}
 
       {/* Modal: nombrar potrero recién dibujado */}
