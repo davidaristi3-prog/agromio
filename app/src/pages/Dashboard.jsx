@@ -61,9 +61,24 @@ export default function Dashboard() {
       setResumen({ fincas: fincas ?? 0, animales: animales ?? 0, enOrdeno: enOrdeno ?? 0, litrosHoy, litrosAyer })
       setFinanzas({ ingresos: ingMes, gastos: gasMes })
 
-      // Pendientes via Edge Function (service_role, sin restricciones de RLS)
-      const { data: fnData } = await supabase.functions.invoke('get-pendientes')
-      setPendientes(fnData?.items ?? [])
+      // Pendientes — query directa (RLS permite propietario ver todo)
+      const [
+        { data: ordPend },
+        { data: sanPend },
+        { data: repPend },
+        { data: repTrabPend },
+      ] = await Promise.all([
+        supabase.from('ordenos').select('id,fecha,litros').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+        supabase.from('eventos_sanitarios').select('id,fecha,tipo,diagnostico').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+        supabase.from('eventos_reproductivos').select('id,fecha,tipo').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+        supabase.from('reportes_trabajador').select('id,fecha,titulo').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+      ])
+      setPendientes([
+        ...(ordPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'ordenos', _desc: `Ordeño — ${Number(r.litros).toFixed(1)} L` })),
+        ...(sanPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'eventos_sanitarios', _desc: `Sanidad: ${r.tipo}${r.diagnostico ? ` — ${r.diagnostico}` : ''}` })),
+        ...(repPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'eventos_reproductivos', _desc: `Reproducción: ${r.tipo}` })),
+        ...(repTrabPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'reportes_trabajador', _desc: `⚡ Reporte: ${r.titulo}` })),
+      ])
 
       const nuevasAlertas = []
       retiros?.forEach(a => nuevasAlertas.push({ tipo: 'retiro', texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
