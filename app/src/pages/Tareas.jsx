@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
@@ -26,8 +27,14 @@ export default function Tareas() {
   const [guardando, setGuardando] = useState(false)
   const fotoRef = useRef()
   const vozRef = useRef()
+  const location = useLocation()
 
   const esPropietarioOMayordomo = perfil?.rol === 'propietario' || perfil?.rol === 'mayordomo'
+
+  // Abrir el formulario automáticamente al llegar desde "Resumen → + Nueva"
+  useEffect(() => {
+    if (location.state?.nueva && esPropietarioOMayordomo) setModalAbierto(true)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     Promise.all([

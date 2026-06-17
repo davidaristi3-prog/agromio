@@ -67,7 +67,7 @@ export default function Busqueda() {
             {resultados.animales.length > 0 && (
               <Grupo titulo="🐄 Animales">
                 {resultados.animales.map(a => (
-                  <Fila key={a.id} onClick={() => navigate(`/animales/${a.id}`)}>
+                  <Fila key={a.id} onClick={() => navigate(`/animales/ficha/${a.id}`)}>
                     <div className="font-semibold text-sm text-gray-800">{a.identificacion}{a.nombre ? ` · ${a.nombre}` : ''}</div>
                     <div className="text-xs text-gray-500">{a.tipo} · {a.fincas?.nombre}</div>
                   </Fila>
@@ -78,7 +78,7 @@ export default function Busqueda() {
             {resultados.tareas.length > 0 && (
               <Grupo titulo="✅ Actividades pendientes">
                 {resultados.tareas.map(t => (
-                  <Fila key={t.id} onClick={() => navigate('/tareas')}>
+                  <Fila key={t.id} onClick={() => navigate('/actividades/puntuales')}>
                     <div className="font-semibold text-sm text-gray-800">{t.titulo}</div>
                     {t.descripcion && <div className="text-xs text-gray-500 truncate">{t.descripcion}</div>}
                     <div className="text-xs text-gray-400">{t.fincas?.nombre}</div>
@@ -101,7 +101,7 @@ export default function Busqueda() {
             {resultados.eventos.length > 0 && (
               <Grupo titulo="💉 Eventos sanitarios">
                 {resultados.eventos.map(e => (
-                  <Fila key={e.id} onClick={() => navigate(`/animales/${e.animales?.id ?? ''}`)}>
+                  <Fila key={e.id} onClick={() => navigate(`/animales/ficha/${e.animales?.id ?? ''}`)}>
                     <div className="font-semibold text-sm text-gray-800">{e.tipo} · {fmtFecha(e.fecha)}</div>
                     {e.diagnostico && <div className="text-xs text-gray-500">{e.diagnostico}</div>}
                     <div className="text-xs text-gray-400">{e.animales?.identificacion}{e.animales?.nombre ? ` (${e.animales.nombre})` : ''}</div>

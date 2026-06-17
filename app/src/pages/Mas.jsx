@@ -2,35 +2,23 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const MODULOS_PROPIETARIO = [
-  { to: '/perfil',      icon: '👤', label: 'Mi perfil',     desc: 'Información personal y contraseña' },
-  { to: '/reportes',    icon: '📊', label: 'Reportes',      desc: 'Producción, actividades y estadísticas' },
-  { to: '/finanzas',    icon: '💰', label: 'Finanzas',      desc: 'Ingresos, gastos y costo por litro' },
-  { to: '/sanidad',     icon: '💉', label: 'Sanidad',       desc: 'Tratamientos, vacunas, retiro de leche' },
-  { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
-  { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
-  { to: '/inventario',  icon: '📦', label: 'Inventario',    desc: 'Medicamentos, concentrado, minerales' },
-  { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Gestión de fincas y lotes/potreros' },
-  { to: '/equipo',             icon: '👥', label: 'Equipo',             desc: 'Mayordomos, trabajadores y asignaciones' },
-  { to: '/tareas-recurrentes', icon: '🔄', label: 'Actividades recurrentes', desc: 'Ver y gestionar actividades diarias del equipo' },
-  { to: '/historial',          icon: '📋', label: 'Historial de aprobaciones', desc: 'Registros aprobados y rechazados' },
+  { to: '/inventario', icon: '📦', label: 'Inventario',  desc: 'Medicamentos, concentrado, minerales' },
+  { to: '/fincas',     icon: '🏡', label: 'Fincas',      desc: 'Gestión de fincas y lotes/potreros' },
+  { to: '/equipo',     icon: '👥', label: 'Equipo',      desc: 'Mayordomos, trabajadores y asignaciones' },
+  { to: '/financiero', icon: '💰', label: 'Financiero',  desc: 'Ingresos, gastos y costo por litro' },
+  { to: '/reportes',   icon: '📊', label: 'Reportes',    desc: 'Producción, actividades y estadísticas' },
+  { to: '/perfil',     icon: '👤', label: 'Mi perfil',   desc: 'Información personal y contraseña' },
 ]
 
 const MODULOS_MAYORDOMO = [
-  { to: '/perfil',               icon: '👤', label: 'Mi perfil',          desc: 'Información personal y contraseña' },
-  { to: '/tareas-recurrentes',   icon: '🔄', label: 'Actividades recurrentes', desc: 'Ver y gestionar actividades diarias del equipo' },
-  { to: '/historial',            icon: '📋', label: 'Historial de aprobaciones', desc: 'Registros aprobados y rechazados' },
-  { to: '/sanidad',              icon: '💉', label: 'Sanidad',            desc: 'Tratamientos, vacunas, retiro de leche' },
-  { to: '/reproduccion',icon: '🔬', label: 'Reproducción',  desc: 'Celos, servicios, partos, diagnósticos' },
-  { to: '/movimientos', icon: '🚛', label: 'Movimientos',   desc: 'Traslados, compras, ventas, bajas' },
-  { to: '/inventario',  icon: '📦', label: 'Inventario',    desc: 'Medicamentos, concentrado, minerales' },
-  { to: '/fincas',      icon: '🏡', label: 'Fincas',        desc: 'Gestión de fincas y lotes/potreros' },
+  { to: '/inventario', icon: '📦', label: 'Inventario', desc: 'Medicamentos, concentrado, minerales' },
+  { to: '/fincas',     icon: '🏡', label: 'Fincas',     desc: 'Gestión de fincas y lotes/potreros' },
+  { to: '/perfil',     icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
 ]
 
 const MODULOS_TRABAJADOR = [
-  { to: '/perfil',               icon: '👤', label: 'Mi perfil',          desc: 'Información personal y contraseña' },
-  { to: '/tareas-recurrentes',   icon: '🔄', label: 'Actividades del día',     desc: 'Ver tus actividades diarias' },
-  { to: '/fincas',               icon: '🏡', label: 'Fincas',             desc: 'Ver fincas y lotes' },
-  { to: '/movimientos',          icon: '🚛', label: 'Movimientos',        desc: 'Traslados del hato' },
+  { to: '/fincas', icon: '🏡', label: 'Fincas',     desc: 'Ver fincas y lotes' },
+  { to: '/perfil', icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
 ]
 
 export default function Mas() {

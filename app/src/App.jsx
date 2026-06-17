@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
+import Hub from './components/Hub'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import DashboardMayordomo from './pages/DashboardMayordomo'
@@ -22,6 +23,28 @@ import Busqueda from './pages/Busqueda'
 import Perfil from './pages/Perfil'
 import TareasRecurrentes from './pages/TareasRecurrentes'
 import HistorialAprobaciones from './pages/HistorialAprobaciones'
+import ResumenActividades from './pages/ResumenActividades'
+
+// Pestañas del módulo Animales (iguales para todos los roles)
+const TABS_ANIMALES = [
+  { to: '/animales',              label: 'Listado',      icon: '🐄', end: true },
+  { to: '/animales/reproduccion', label: 'Reproducción', icon: '🔬' },
+  { to: '/animales/sanidad',      label: 'Sanidad',      icon: '💉' },
+  { to: '/animales/movimientos',  label: 'Movimientos',  icon: '🚛' },
+]
+
+function ActividadesHub() {
+  const { perfil } = useAuth()
+  const tabs = [
+    { to: '/actividades',             label: 'Resumen',     icon: '📊', end: true },
+    { to: '/actividades/puntuales',   label: 'Puntuales',   icon: '✅' },
+    { to: '/actividades/recurrentes', label: 'Recurrentes', icon: '🔄' },
+  ]
+  if (perfil?.rol === 'propietario' || perfil?.rol === 'mayordomo') {
+    tabs.push({ to: '/actividades/historial', label: 'Aprobaciones', icon: '📋' })
+  }
+  return <Hub tabs={tabs} />
+}
 
 function Rutas() {
   const { session, perfil } = useAuth()
@@ -41,24 +64,37 @@ function Rutas() {
             perfil?.rol === 'mayordomo'  ? <DashboardMayordomo />  :
             <Dashboard />
           } />
-          <Route path="/animales"     element={<Animales />}    />
-          <Route path="/tareas"       element={<Tareas />}      />
-          <Route path="/ordenos"      element={<Ordenos />}     />
-          <Route path="/sanidad"      element={<Sanidad />}     />
-          <Route path="/reproduccion" element={<Reproduccion />}/>
-          <Route path="/movimientos"  element={<Movimientos />} />
-          <Route path="/fincas"       element={<Fincas />}      />
-          <Route path="/equipo"       element={<Usuarios />}    />
-          <Route path="/mas"          element={<Mas />}         />
-          <Route path="/inventario"   element={<Inventario />}  />
-          <Route path="/animales/:id" element={<FichaAnimal />} />
-          <Route path="/reportes"    element={<Reportes />}   />
-          <Route path="/finanzas"    element={<Finanzas />}   />
-          <Route path="/busqueda"    element={<Busqueda />}   />
-          <Route path="/perfil"           element={<Perfil />}            />
-          <Route path="/tareas-recurrentes" element={<TareasRecurrentes />} />
-          <Route path="/historial"          element={<HistorialAprobaciones />} />
-          <Route path="*"             element={<Navigate to="/" replace />} />
+
+          {/* Módulo Animales (hub con pestañas) */}
+          <Route path="/animales" element={<Hub tabs={TABS_ANIMALES} />}>
+            <Route index element={<Animales />} />
+            <Route path="reproduccion" element={<Reproduccion />} />
+            <Route path="sanidad"      element={<Sanidad />} />
+            <Route path="movimientos"  element={<Movimientos />} />
+          </Route>
+          <Route path="/animales/ficha/:id" element={<FichaAnimal />} />
+
+          {/* Módulo Actividades (hub con pestañas) */}
+          <Route path="/actividades" element={<ActividadesHub />}>
+            <Route index element={<ResumenActividades />} />
+            <Route path="puntuales"   element={<Tareas />} />
+            <Route path="recurrentes" element={<TareasRecurrentes />} />
+            <Route path="historial"   element={<HistorialAprobaciones />} />
+          </Route>
+
+          {/* Acceso directo (barra inferior) */}
+          <Route path="/ordenos" element={<Ordenos />} />
+
+          {/* Módulos de "Más" */}
+          <Route path="/inventario" element={<Inventario />} />
+          <Route path="/fincas"     element={<Fincas />} />
+          <Route path="/equipo"     element={<Usuarios />} />
+          <Route path="/financiero" element={<Finanzas />} />
+          <Route path="/reportes"   element={<Reportes />} />
+          <Route path="/perfil"     element={<Perfil />} />
+          <Route path="/busqueda"   element={<Busqueda />} />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

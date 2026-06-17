@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 const navPrincipal = [
   { to: '/',          icon: '🏠', label: 'Inicio'   },
   { to: '/animales',  icon: '🐄', label: 'Animales' },
-  { to: '/tareas',    icon: '✅', label: 'Actividades'   },
+  { to: '/actividades', icon: '✅', label: 'Actividades' },
   { to: '/ordenos',   icon: '🥛', label: 'Ordeños'  },
   { to: '/mas',       icon: '☰',  label: 'Más'      },
 ]

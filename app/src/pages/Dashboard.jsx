@@ -134,13 +134,11 @@ export default function Dashboard() {
   }
 
   const modulos = [
-    { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato y fichas' },
-    { to: '/tareas',       icon: '✅', label: 'Actividades',       desc: 'Pendientes y asignadas' },
+    { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato, sanidad y reproducción' },
+    { to: '/actividades',  icon: '✅', label: 'Actividades',  desc: 'Pendientes y recurrentes' },
     { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
-    { to: '/sanidad',      icon: '💉', label: 'Sanidad',      desc: 'Tratamientos y vacunas' },
-    { to: '/reproduccion', icon: '🔬', label: 'Reproducción', desc: 'Servicios y partos' },
-    { to: '/movimientos',  icon: '🚛', label: 'Movimientos',  desc: 'Traslados y bajas' },
-    { to: '/finanzas',     icon: '💰', label: 'Finanzas',     desc: 'Ingresos y gastos' },
+    { to: '/inventario',   icon: '📦', label: 'Inventario',   desc: 'Insumos y stock' },
+    { to: '/financiero',   icon: '💰', label: 'Financiero',   desc: 'Ingresos y gastos' },
     { to: '/reportes',     icon: '📊', label: 'Reportes',     desc: 'Estadísticas' },
   ]
 
@@ -285,7 +283,7 @@ export default function Dashboard() {
 
       {/* Balance del mes */}
       {!cargando && (finanzas.ingresos > 0 || finanzas.gastos > 0) && (
-        <Link to="/finanzas" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <Link to="/financiero" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-gray-700">💰 Finanzas este mes</span>
             <span className="text-xs text-gray-400">Ver detalle ›</span>

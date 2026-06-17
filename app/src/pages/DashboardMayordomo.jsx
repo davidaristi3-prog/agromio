@@ -89,14 +89,11 @@ export default function DashboardMayordomo() {
   }
 
   const modulos = [
-    { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato y fichas' },
-    { to: '/tareas',       icon: '✅', label: 'Actividades',       desc: 'Gestionar actividades' },
-    { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
-    { to: '/sanidad',      icon: '💉', label: 'Sanidad',      desc: 'Tratamientos y vacunas' },
-    { to: '/reproduccion', icon: '🔬', label: 'Reproducción', desc: 'Servicios y partos' },
-    { to: '/movimientos',  icon: '🚛', label: 'Movimientos',  desc: 'Traslados y bajas' },
-    { to: '/inventario',   icon: '📦', label: 'Inventario',   desc: 'Insumos y stock' },
-    { to: '/fincas',       icon: '🏡', label: 'Fincas',       desc: 'Fincas y lotes' },
+    { to: '/animales',    icon: '🐄', label: 'Animales',    desc: 'Hato, sanidad y reproducción' },
+    { to: '/actividades', icon: '✅', label: 'Actividades', desc: 'Gestionar actividades' },
+    { to: '/ordenos',     icon: '🥛', label: 'Ordeños',     desc: 'Registro de producción' },
+    { to: '/inventario',  icon: '📦', label: 'Inventario',  desc: 'Insumos y stock' },
+    { to: '/fincas',      icon: '🏡', label: 'Fincas',      desc: 'Fincas y lotes' },
   ]
 
   return (

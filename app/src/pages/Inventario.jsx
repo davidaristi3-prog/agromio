@@ -7,6 +7,10 @@ const CAT_ICON = {
   medicamento: '💊', vacuna: '💉', concentrado: '🌾',
   mineral: '🧂', desparasitante: '🔬', otro: '📦'
 }
+const CAT_LABEL = {
+  medicamento: 'Medicamentos', vacuna: 'Vacunas', concentrado: 'Concentrados',
+  mineral: 'Minerales', desparasitante: 'Desparasitantes', otro: 'Otros'
+}
 
 export default function Inventario() {
   const { perfil } = useAuth()
@@ -119,18 +123,27 @@ export default function Inventario() {
         </div>
       )}
 
-      {/* Filtros */}
-      <div className="flex gap-2">
-        <select value={filtroFinca} onChange={e => setFiltroFinca(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
-          <option value="">Todas las fincas</option>
-          {fincas.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-        </select>
-        <select value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
-          <option value="">Todas</option>
-          {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+      {/* Filtro por finca */}
+      <select value={filtroFinca} onChange={e => setFiltroFinca(e.target.value)}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+        <option value="">Todas las fincas</option>
+        {fincas.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
+      </select>
+
+      {/* Pestañas por categoría */}
+      <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
+        {[{ value: '', icon: '📋', label: 'Todos' },
+          ...CATEGORIAS.map(c => ({ value: c, icon: CAT_ICON[c], label: CAT_LABEL[c] }))
+        ].map(({ value, icon, label }) => (
+          <button key={value || 'todos'} onClick={() => setFiltroCategoria(value)}
+            className={`flex items-center gap-1 whitespace-nowrap text-sm px-4 py-2 rounded-full border transition ${
+              filtroCategoria === value
+                ? 'bg-verde-600 text-white border-verde-600 font-semibold'
+                : 'bg-white text-gray-500 border-gray-200'
+            }`}>
+            <span>{icon}</span>{label}
+          </button>
+        ))}
       </div>
 
       {/* Lista */}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -50,13 +51,26 @@ async function notificarCompletacion(tarea, trabajador) {
 
 export default function TareasRecurrentes() {
   const { perfil } = useAuth()
-  const [vista, setVista] = useState('hoy')
+  const location = useLocation()
+  const [vista, setVista] = useState(location.state?.nueva ? 'gestionar' : 'hoy')
+  const [nuevaSignal, setNuevaSignal] = useState(location.state?.nueva ? 1 : 0)
 
   if (perfil?.rol === 'trabajador') return <VistaTrabajador perfil={perfil} />
 
+  function nuevaActividad() {
+    setVista('gestionar')
+    setNuevaSignal(n => n + 1)
+  }
+
   return (
     <div className="space-y-4 pt-2">
-      <h2 className="text-xl font-bold text-gray-800">Actividades recurrentes</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-800">Actividades recurrentes</h2>
+        <button onClick={nuevaActividad}
+          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
+          + Nueva
+        </button>
+      </div>
       <div className="flex bg-gray-100 rounded-xl p-1">
         {[['hoy', 'Hoy'], ['gestionar', 'Gestionar']].map(([v, l]) => (
           <button key={v} onClick={() => setVista(v)}
@@ -65,7 +79,7 @@ export default function TareasRecurrentes() {
           </button>
         ))}
       </div>
-      {vista === 'hoy' ? <VistaHoyGestor /> : <VistaGestionar perfil={perfil} />}
+      {vista === 'hoy' ? <VistaHoyGestor /> : <VistaGestionar perfil={perfil} abrirNuevaSignal={nuevaSignal} />}
     </div>
   )
 }
@@ -668,7 +682,7 @@ function VistaHoyGestor() {
 }
 
 // ─── Vista gestionar: CRUD ──────────────────────────────────────────────────
-function VistaGestionar({ perfil }) {
+function VistaGestionar({ perfil, abrirNuevaSignal }) {
   const [tareas, setTareas] = useState([])
   const [trabajadores, setTrabajadores] = useState([])
   const [fincas, setFincas] = useState([])
@@ -694,6 +708,7 @@ function VistaGestionar({ perfil }) {
   }
 
   useEffect(() => { cargar() }, [])
+  useEffect(() => { if (abrirNuevaSignal) setModal(true) }, [abrirNuevaSignal])
 
   async function guardar(e) {
     e.preventDefault()
@@ -724,13 +739,6 @@ function VistaGestionar({ perfil }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <button onClick={() => setModal(true)}
-          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-          + Nueva actividad
-        </button>
-      </div>
-
       {cargando ? <p className="text-gray-400 text-sm">Cargando...</p> : tareas.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-4xl mb-3">🔄</p>

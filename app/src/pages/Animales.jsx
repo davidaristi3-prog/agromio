@@ -72,7 +72,7 @@ export default function Animales() {
       ) : (
         <div className="space-y-2">
           {visibles.map(a => (
-            <div key={a.id} onClick={() => navigate(`/animales/${a.id}`)} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow transition">
+            <div key={a.id} onClick={() => navigate(`/animales/ficha/${a.id}`)} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow transition">
               <span className="text-2xl">{a.tipo === 'toro' ? '🐂' : '🐄'}</span>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-800 text-sm">{a.identificacion} {a.nombre ? `· ${a.nombre}` : ''}</div>

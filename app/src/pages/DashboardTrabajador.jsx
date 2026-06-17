@@ -47,9 +47,9 @@ export default function DashboardTrabajador() {
 
       const items = [
         ...(ordRech ?? []).map(r => ({ ...r, _tipo: 'Ordeño', _desc: `${Number(r.litros).toFixed(1)} L`, _link: '/ordenos' })),
-        ...(sanRech ?? []).map(r => ({ ...r, _tipo: 'Sanidad', _desc: r.tipo, _link: '/sanidad' })),
-        ...(repRech ?? []).map(r => ({ ...r, _tipo: 'Reproducción', _desc: r.tipo, _link: '/reproduccion' })),
-        ...(repTrabRech ?? []).map(r => ({ ...r, _tipo: 'Reporte', _desc: r.titulo, _link: '/tareas-recurrentes' })),
+        ...(sanRech ?? []).map(r => ({ ...r, _tipo: 'Sanidad', _desc: r.tipo, _link: '/animales/sanidad' })),
+        ...(repRech ?? []).map(r => ({ ...r, _tipo: 'Reproducción', _desc: r.tipo, _link: '/animales/reproduccion' })),
+        ...(repTrabRech ?? []).map(r => ({ ...r, _tipo: 'Reporte', _desc: r.titulo, _link: '/actividades/recurrentes' })),
       ]
       setRechazados(items)
       setCargando(false)
@@ -61,13 +61,13 @@ export default function DashboardTrabajador() {
   const hoy = new Date().toISOString().split('T')[0]
 
   const modulos = [
-    { to: '/tareas-recurrentes', icon: '🔄', label: 'Actividades del día',  desc: 'Tus actividades diarias' },
-    { to: '/animales',           icon: '🐄', label: 'Animales',        desc: 'Consultar hato y fichas' },
-    { to: '/tareas',             icon: '✅', label: 'Actividades asignadas',desc: 'Ver y completar actividades' },
-    { to: '/ordenos',            icon: '🥛', label: 'Ordeños',         desc: 'Registrar producción' },
-    { to: '/sanidad',            icon: '💉', label: 'Sanidad',         desc: 'Registrar eventos' },
-    { to: '/reproduccion',       icon: '🔬', label: 'Reproducción',    desc: 'Registrar eventos' },
-    { to: '/fincas',             icon: '🏡', label: 'Fincas',          desc: 'Ver fincas y lotes' },
+    { to: '/actividades/recurrentes', icon: '🔄', label: 'Actividades del día', desc: 'Tus actividades diarias' },
+    { to: '/animales',                icon: '🐄', label: 'Animales',            desc: 'Consultar hato y fichas' },
+    { to: '/actividades',             icon: '✅', label: 'Actividades asignadas', desc: 'Ver y completar actividades' },
+    { to: '/ordenos',                 icon: '🥛', label: 'Ordeños',             desc: 'Registrar producción' },
+    { to: '/animales/sanidad',        icon: '💉', label: 'Sanidad',             desc: 'Registrar eventos' },
+    { to: '/animales/reproduccion',   icon: '🔬', label: 'Reproducción',        desc: 'Registrar eventos' },
+    { to: '/fincas',                  icon: '🏡', label: 'Fincas',              desc: 'Ver fincas y lotes' },
   ]
 
   return (
@@ -81,8 +81,8 @@ export default function DashboardTrabajador() {
         <p className="text-white font-bold text-xl mb-4">¿Qué vas a registrar hoy?</p>
         <div className="relative z-10 grid grid-cols-3 gap-2">
           <AccionRapida to="/ordenos" icon="🥛" label="Ordeño" />
-          <AccionRapida to="/sanidad" icon="💉" label="Sanidad" />
-          <AccionRapida to="/reproduccion" icon="🔬" label="Reproducción" />
+          <AccionRapida to="/animales/sanidad" icon="💉" label="Sanidad" />
+          <AccionRapida to="/animales/reproduccion" icon="🔬" label="Reproducción" />
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export default function DashboardTrabajador() {
             {tareas.map(t => {
               const vencida = t.fecha_vencimiento && t.fecha_vencimiento < hoy
               return (
-                <Link key={t.id} to="/tareas"
+                <Link key={t.id} to="/actividades"
                   className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm border border-gray-100">
                   <span className="text-xl">{t.prioridad === 'alta' ? '🔴' : t.prioridad === 'media' ? '🟡' : '🟢'}</span>
                   <div className="flex-1 min-w-0">
@@ -159,7 +159,7 @@ export default function DashboardTrabajador() {
                 </Link>
               )
             })}
-            <Link to="/tareas" className="block text-center text-sm text-verde-600 font-medium py-2">
+            <Link to="/actividades" className="block text-center text-sm text-verde-600 font-medium py-2">
               Ver todas las actividades ›
             </Link>
           </div>
