@@ -20,7 +20,6 @@ Deno.serve(async (req) => {
     const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const anonKey     = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 
-    // Verificar que el llamador es propietario o mayordomo
     const authHeader = req.headers.get('Authorization') ?? ''
     if (!authHeader) return resp({ error: 'Sin autorización' }, 401)
 
@@ -43,11 +42,11 @@ Deno.serve(async (req) => {
       return resp({ error: 'Sin permisos' }, 403)
     }
 
-    // Traer todos los pendientes usando service_role (sin RLS)
     const [
       { data: ordenos },
       { data: sanitarios },
       { data: reproductivos },
+      { data: reportes },
     ] = await Promise.all([
       admin.from('ordenos')
         .select('id,fecha,litros')
@@ -59,6 +58,10 @@ Deno.serve(async (req) => {
         .order('created_at', { ascending: false }),
       admin.from('eventos_reproductivos')
         .select('id,fecha,tipo')
+        .eq('estado', 'pendiente')
+        .order('created_at', { ascending: false }),
+      admin.from('reportes_trabajador')
+        .select('id,fecha,titulo,descripcion')
         .eq('estado', 'pendiente')
         .order('created_at', { ascending: false }),
     ])
@@ -81,6 +84,12 @@ Deno.serve(async (req) => {
         fecha: r.fecha,
         _tabla: 'eventos_reproductivos',
         _desc: `Reproducción: ${r.tipo}`,
+      })),
+      ...(reportes ?? []).map(r => ({
+        id: r.id,
+        fecha: r.fecha,
+        _tabla: 'reportes_trabajador',
+        _desc: `⚡ Reporte: ${r.titulo}${r.descripcion ? ` — ${r.descripcion}` : ''}`,
       })),
     ]
 

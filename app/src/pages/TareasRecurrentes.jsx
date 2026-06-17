@@ -78,6 +78,18 @@ function VistaTrabajador({ perfil }) {
   const [cargando, setCargando] = useState(true)
   const [modalTarea, setModalTarea] = useState(null)
   const [evidenciaModal, setEvidenciaModal] = useState(null)
+  const [modalReporte, setModalReporte] = useState(false)
+  const [reportes, setReportes] = useState([])
+  const [fincas, setFincas] = useState([])
+
+  async function cargarReportes() {
+    const { data } = await supabase.from('reportes_trabajador')
+      .select('id,titulo,descripcion,fecha,estado,comentario_rechazo,fincas(nombre)')
+      .eq('creado_por', perfil.id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+    setReportes(data ?? [])
+  }
 
   async function cargar() {
     setCargando(true)
@@ -102,7 +114,12 @@ function VistaTrabajador({ perfil }) {
     setCargando(false)
   }
 
-  useEffect(() => { cargar() }, [perfil?.id])
+  useEffect(() => {
+    cargar()
+    cargarReportes()
+    supabase.from('fincas').select('id,nombre').eq('activa', true).order('nombre')
+      .then(({ data }) => setFincas(data ?? []))
+  }, [perfil?.id])
 
   const tareasHoy = tareas.filter(t => proximaFecha(t) === hoy)
   const tareasProximas = tareas.filter(t => proximaFecha(t) > hoy)
@@ -217,6 +234,46 @@ function VistaTrabajador({ perfil }) {
         </>
       )}
 
+          {/* Mis reportes extraordinarios */}
+          {reportes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2">Mis reportes</p>
+              {reportes.map(r => {
+                const [y, m, d] = r.fecha.split('-')
+                const badge =
+                  r.estado === 'aprobado'  ? 'bg-verde-100 text-verde-700' :
+                  r.estado === 'rechazado' ? 'bg-red-100 text-red-600' :
+                  'bg-amber-100 text-amber-700'
+                const label =
+                  r.estado === 'aprobado'  ? 'Aprobado' :
+                  r.estado === 'rechazado' ? 'Rechazado' :
+                  'Pendiente'
+                return (
+                  <div key={r.id} className="bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg mt-0.5">⚡</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800">{r.titulo}</p>
+                        {r.descripcion && <p className="text-xs text-gray-500 mt-0.5">{r.descripcion}</p>}
+                        <p className="text-xs text-gray-400 mt-0.5">{d}/{m}/{y}{r.fincas?.nombre ? ` · ${r.fincas.nombre}` : ''}</p>
+                        {r.estado === 'rechazado' && r.comentario_rechazo && (
+                          <p className="text-xs text-red-500 mt-1">Motivo: {r.comentario_rechazo}</p>
+                        )}
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${badge}`}>{label}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+      {/* Botón flotante reportar */}
+      <button onClick={() => setModalReporte(true)}
+        className="fixed bottom-24 right-4 bg-orange-500 text-white rounded-full shadow-lg flex items-center gap-2 px-4 py-3 text-sm font-bold z-40 active:bg-orange-600 transition">
+        <span className="text-lg leading-none">⚡</span> Reportar actividad
+      </button>
+
       {modalTarea && (
         <ModalCompletar
           tarea={modalTarea} perfil={perfil} targetFecha={modalTarea._targetFecha}
@@ -225,6 +282,13 @@ function VistaTrabajador({ perfil }) {
         />
       )}
       {evidenciaModal && <ModalEvidencia completacion={evidenciaModal} onClose={() => setEvidenciaModal(null)} />}
+      {modalReporte && (
+        <ModalReporte
+          perfil={perfil} fincas={fincas} hoy={hoy}
+          onClose={() => setModalReporte(false)}
+          onGuardado={() => { setModalReporte(false); cargarReportes() }}
+        />
+      )}
     </div>
   )
 }
@@ -335,6 +399,115 @@ function ModalCompletar({ tarea, perfil, targetFecha, onClose, onCompletada }) {
             {guardando ? 'Guardando...' : '✓ Marcar como hecha'}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Modal reportar actividad extraordinaria ────────────────────────────────
+function ModalReporte({ perfil, fincas, hoy, onClose, onGuardado }) {
+  const [form, setForm] = useState({ titulo: '', descripcion: '', finca_id: '', fecha: hoy })
+  const [foto, setFoto] = useState(null)
+  const [fotoPreview, setFotoPreview] = useState(null)
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+
+  function onFoto(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFoto(file)
+    setFotoPreview(URL.createObjectURL(file))
+  }
+
+  async function guardar(e) {
+    e.preventDefault()
+    if (!form.titulo.trim()) { setError('El título es obligatorio'); return }
+    setGuardando(true)
+    setError('')
+
+    let foto_url = null
+    if (foto) {
+      const ext = foto.name.split('.').pop()
+      const path = `reportes/${perfil.id}/${form.fecha}_${Date.now()}.${ext}`
+      await supabase.storage.from('evidencias').upload(path, foto, { upsert: true })
+      const { data } = supabase.storage.from('evidencias').getPublicUrl(path)
+      foto_url = data.publicUrl
+    }
+
+    const { error: err } = await supabase.from('reportes_trabajador').insert({
+      titulo: form.titulo.trim(),
+      descripcion: form.descripcion.trim() || null,
+      fecha: form.fecha,
+      finca_id: form.finca_id || null,
+      foto_url,
+      creado_por: perfil.id,
+    })
+
+    setGuardando(false)
+    if (err) { setError(err.message); return }
+    onGuardado()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">⚡</span>
+          <h3 className="font-bold text-gray-800">Reportar actividad extraordinaria</h3>
+        </div>
+        {error && <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-600">{error}</div>}
+        <form onSubmit={guardar} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">¿Qué hiciste? *</label>
+            <input required value={form.titulo} onChange={e => setForm(f => ({...f, titulo: e.target.value}))}
+              placeholder="ej: Arreglé fuga de agua en el potrero 2"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción (detalles)</label>
+            <textarea value={form.descripcion} onChange={e => setForm(f => ({...f, descripcion: e.target.value}))} rows={2}
+              placeholder="Más detalles de lo que pasó o cómo lo resolviste..."
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+              <input type="date" value={form.fecha} onChange={e => setForm(f => ({...f, fecha: e.target.value}))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Finca</label>
+              <select value={form.finca_id} onChange={e => setForm(f => ({...f, finca_id: e.target.value}))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <option value="">Sin finca</option>
+                {fincas.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Foto evidencia</label>
+            {fotoPreview ? (
+              <div className="relative">
+                <img src={fotoPreview} className="w-full h-40 object-cover rounded-xl" />
+                <button type="button" onClick={() => { setFoto(null); setFotoPreview(null) }}
+                  className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold">×</button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-24 cursor-pointer bg-gray-50">
+                <span className="text-xl mb-1">📷</span>
+                <span className="text-xs text-gray-500">Adjuntar foto (opcional)</span>
+                <input type="file" accept="image/*" onChange={onFoto} className="hidden" />
+              </label>
+            )}
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
+            <button type="submit" disabled={guardando}
+              className="flex-1 bg-orange-500 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
+              {guardando ? 'Enviando...' : '⚡ Enviar reporte'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

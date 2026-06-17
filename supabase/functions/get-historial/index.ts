@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
       { data: ordenos },
       { data: sanitarios },
       { data: reproductivos },
+      { data: reportes },
     ] = await Promise.all([
       admin.from('ordenos')
         .select('id,fecha,litros,estado,comentario_rechazo,creado_por,aprobado_por')
@@ -62,10 +63,19 @@ Deno.serve(async (req) => {
         .in('estado', ['aprobado', 'rechazado'])
         .order('created_at', { ascending: false })
         .limit(100),
+      admin.from('reportes_trabajador')
+        .select('id,fecha,titulo,descripcion,estado,comentario_rechazo,creado_por,aprobado_por')
+        .in('estado', ['aprobado', 'rechazado'])
+        .order('created_at', { ascending: false })
+        .limit(100),
     ])
 
-    // Recoger todos los IDs de usuarios referenciados
-    const allRows = [...(ordenos ?? []), ...(sanitarios ?? []), ...(reproductivos ?? [])]
+    const allRows = [
+      ...(ordenos ?? []),
+      ...(sanitarios ?? []),
+      ...(reproductivos ?? []),
+      ...(reportes ?? []),
+    ]
     const userIds = [...new Set(
       allRows.flatMap(r => [r.creado_por, r.aprobado_por]).filter(Boolean)
     )]
@@ -80,32 +90,30 @@ Deno.serve(async (req) => {
 
     const items = [
       ...(ordenos ?? []).map(r => ({
-        id: r.id,
-        fecha: r.fecha,
-        _tabla: 'ordenos',
+        id: r.id, fecha: r.fecha, _tabla: 'ordenos',
         _desc: `Ordeño — ${Number(r.litros).toFixed(1)} L`,
-        estado: r.estado,
-        comentario_rechazo: r.comentario_rechazo,
+        estado: r.estado, comentario_rechazo: r.comentario_rechazo,
         creado_por_nombre: userMap[r.creado_por] ?? '—',
         aprobado_por_nombre: userMap[r.aprobado_por] ?? '—',
       })),
       ...(sanitarios ?? []).map(r => ({
-        id: r.id,
-        fecha: r.fecha,
-        _tabla: 'eventos_sanitarios',
+        id: r.id, fecha: r.fecha, _tabla: 'eventos_sanitarios',
         _desc: `Sanidad: ${r.tipo}${r.diagnostico ? ` — ${r.diagnostico}` : ''}`,
-        estado: r.estado,
-        comentario_rechazo: r.comentario_rechazo,
+        estado: r.estado, comentario_rechazo: r.comentario_rechazo,
         creado_por_nombre: userMap[r.creado_por] ?? '—',
         aprobado_por_nombre: userMap[r.aprobado_por] ?? '—',
       })),
       ...(reproductivos ?? []).map(r => ({
-        id: r.id,
-        fecha: r.fecha,
-        _tabla: 'eventos_reproductivos',
+        id: r.id, fecha: r.fecha, _tabla: 'eventos_reproductivos',
         _desc: `Reproducción: ${r.tipo}`,
-        estado: r.estado,
-        comentario_rechazo: r.comentario_rechazo,
+        estado: r.estado, comentario_rechazo: r.comentario_rechazo,
+        creado_por_nombre: userMap[r.creado_por] ?? '—',
+        aprobado_por_nombre: userMap[r.aprobado_por] ?? '—',
+      })),
+      ...(reportes ?? []).map(r => ({
+        id: r.id, fecha: r.fecha, _tabla: 'reportes_trabajador',
+        _desc: `⚡ Reporte: ${r.titulo}${r.descripcion ? ` — ${r.descripcion}` : ''}`,
+        estado: r.estado, comentario_rechazo: r.comentario_rechazo,
         creado_por_nombre: userMap[r.creado_por] ?? '—',
         aprobado_por_nombre: userMap[r.aprobado_por] ?? '—',
       })),
