@@ -19,6 +19,10 @@ create table if not exists potreros (
 
 create index if not exists idx_potreros_finca on potreros(finca_id);
 
+-- Centro del mapa de cada finca (para que al elegirla el mapa vuele hasta ella)
+alter table fincas add column if not exists lat numeric;
+alter table fincas add column if not exists lng numeric;
+
 alter table potreros enable row level security;
 
 -- Ver: propietario ve todo; los demás ven los potreros de sus fincas asignadas.

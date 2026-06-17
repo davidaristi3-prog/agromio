@@ -72,14 +72,13 @@ export default function Potreros() {
   const drawRef = useRef(null)
   const potrerosRef = useRef([])
 
-  // ── Cargar fincas ──
-  useEffect(() => {
-    supabase.from('fincas').select('id,nombre').eq('activa', true).order('nombre')
-      .then(({ data }) => {
-        setFincas(data ?? [])
-        if (data?.length) setFincaId(data[0].id)
-      })
-  }, [])
+  // ── Cargar fincas (con su centro guardado) ──
+  async function loadFincas() {
+    const { data } = await supabase.from('fincas').select('id,nombre,lat,lng').eq('activa', true).order('nombre')
+    setFincas(data ?? [])
+    setFincaId(prev => prev || (data?.[0]?.id ?? ''))
+  }
+  useEffect(() => { loadFincas() }, [])
 
   // ── Inicializar el mapa (una vez) ──
   useEffect(() => {
@@ -169,19 +168,37 @@ export default function Potreros() {
     if (!map || !mapListo) return
     const src = map.getSource('potreros')
     if (src) src.setData(aFeatureCollection(potreros))
-    // Encuadrar a los potreros existentes
+    // Encuadrar a los potreros existentes...
     const todos = potreros.flatMap(p => p.coordenadas)
     if (todos.length) {
       const lngs = todos.map(c => c[0]); const lats = todos.map(c => c[1])
       map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
         { padding: 60, maxZoom: 17, duration: 600 })
+    } else {
+      // ...o, si no hay potreros, volar al centro guardado de la finca
+      const f = fincas.find(x => x.id === fincaId)
+      if (f && f.lat != null && f.lng != null) {
+        map.flyTo({ center: [Number(f.lng), Number(f.lat)], zoom: 15, duration: 800 })
+      }
     }
-  }, [potreros, mapListo])
+  }, [potreros, mapListo, fincaId, fincas])
 
   function dibujar() {
     if (!drawRef.current) return
     drawRef.current.changeMode('draw_polygon')
   }
+
+  async function fijarUbicacion() {
+    const map = mapRef.current
+    if (!map || !fincaId) return
+    const c = map.getCenter()
+    await supabase.from('fincas').update({ lat: c.lat, lng: c.lng }).eq('id', fincaId)
+    await loadFincas()
+    alert('Listo: guardé el centro de esta finca. La próxima vez el mapa abrirá aquí.')
+  }
+
+  const fincaActual = fincas.find(f => f.id === fincaId)
+  const sinUbicacion = fincaActual && fincaActual.lat == null && potreros.length === 0
 
   async function eliminar(p) {
     if (!confirm(`¿Eliminar el potrero "${p.nombre}"?`)) return
@@ -238,6 +255,17 @@ export default function Potreros() {
         </div>
       )}
 
+      {/* Aviso para ubicar la finca la primera vez */}
+      {puedeEditar && sinUbicacion && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800 space-y-2">
+          <p>Esta finca aún no tiene ubicación. Centra el mapa en <strong>{fincaActual?.nombre}</strong> (toca 📍 si estás en la finca, o arrastra el mapa hasta ella) y guárdala:</p>
+          <button onClick={fijarUbicacion}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">
+            📌 Fijar el centro de esta finca aquí
+          </button>
+        </div>
+      )}
+
       {mapError && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
           <p className="font-semibold mb-0.5">El mapa reportó un error:</p>
@@ -254,6 +282,13 @@ export default function Potreros() {
           ? 'Toca "Dibujar potrero", marca las esquinas siguiendo las cercas y cierra tocando el primer punto. Usa 📍 para ubicarte.'
           : 'Toca 📍 (arriba a la derecha) para ver en qué potrero estás.'}
       </p>
+
+      {puedeEditar && fincaActual && !sinUbicacion && (
+        <button onClick={fijarUbicacion}
+          className="w-full text-xs text-gray-400 hover:text-verde-600 transition">
+          📌 Actualizar el centro de esta finca a la vista actual
+        </button>
+      )}
 
       {potreros.length > 0 && (
         <div className="space-y-1.5">
