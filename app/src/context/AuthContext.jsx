@@ -9,15 +9,45 @@ export function AuthProvider({ children }) {
   const [perfil, setPerfil] = useState(null)
 
   useEffect(() => {
+    // Carga inicial de sesión
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Escuchar cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // TOKEN_REFRESHED: actualizar silenciosamente sin cerrar sesión
+      // SIGNED_OUT: solo cerrar si fue explícito (no por fallo de red)
+      if (event === 'SIGNED_OUT') {
+        // Verificar si realmente no hay sesión guardada antes de desloguear
+        supabase.auth.getSession().then(({ data }) => {
+          if (!data.session) setSession(null)
+        })
+        return
+      }
       setSession(session)
     })
 
-    return () => subscription.unsubscribe()
+    // Refrescar token cuando la app vuelve a primer plano (PWA en teléfono)
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(s => {
+            // Solo actualizar si hay cambio real para no re-renderizar innecesariamente
+            if (!session && s) return null
+            if (session && !s) return session
+            return s
+          })
+        })
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [])
 
   useEffect(() => {
@@ -28,11 +58,12 @@ export function AuthProvider({ children }) {
       .eq('id', session.user.id)
       .single()
       .then(({ data }) => {
-        setPerfil(data)
-        // Inicializar notificaciones push para este usuario
-        inicializarOneSignal(session.user.id).catch(() => {})
+        if (data) {
+          setPerfil(data)
+          inicializarOneSignal(session.user.id).catch(() => {})
+        }
       })
-  }, [session])
+  }, [session?.user?.id])
 
   const logout = () => supabase.auth.signOut()
 
