@@ -85,7 +85,8 @@ function Rutas() {
           {/* Acceso directo (barra inferior) */}
           <Route path="/ordenos" element={<Ordenos />} />
 
-          {/* Módulos de "Más" */}
+          {/* Menú "Más" y sus módulos */}
+          <Route path="/mas"        element={<Mas />} />
           <Route path="/inventario" element={<Inventario />} />
           <Route path="/fincas"     element={<Fincas />} />
           <Route path="/equipo"     element={<Usuarios />} />

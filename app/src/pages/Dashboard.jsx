@@ -137,9 +137,6 @@ export default function Dashboard() {
     { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato, sanidad y reproducción' },
     { to: '/actividades',  icon: '✅', label: 'Actividades',  desc: 'Pendientes y recurrentes' },
     { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
-    { to: '/inventario',   icon: '📦', label: 'Inventario',   desc: 'Insumos y stock' },
-    { to: '/financiero',   icon: '💰', label: 'Financiero',   desc: 'Ingresos y gastos' },
-    { to: '/reportes',     icon: '📊', label: 'Reportes',     desc: 'Estadísticas' },
   ]
 
   return (
