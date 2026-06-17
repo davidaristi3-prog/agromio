@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fmtFecha } from '../lib/fecha'
 
 const TIPOS = ['tratamiento','vacuna','diagnostico','desparasitacion','otro']
 
@@ -86,12 +87,12 @@ export default function Sanidad() {
                 <div className="font-semibold text-sm text-gray-800">
                   {ev.animales ? `${ev.animales.identificacion}${ev.animales.nombre ? ` · ${ev.animales.nombre}` : ''}` : ev.fincas?.nombre}
                 </div>
-                <div className="text-xs text-gray-500">{ev.fecha} · {ev.tipo}</div>
+                <div className="text-xs text-gray-500">{fmtFecha(ev.fecha)} · {ev.tipo}</div>
                 {ev.diagnostico && <div className="text-xs text-gray-600 mt-0.5">{ev.diagnostico}</div>}
                 {ev.medicamento && <div className="text-xs text-gray-600">{ev.medicamento}</div>}
                 {ev.requiere_retiro && (
                   <span className="inline-block mt-1 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                    Retiro hasta {ev.fecha_fin_retiro ?? '?'}
+                    Retiro hasta {fmtFecha(ev.fecha_fin_retiro)}
                   </span>
                 )}
               </div>

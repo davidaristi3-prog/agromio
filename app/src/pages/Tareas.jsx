@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fmtFecha } from '../lib/fecha'
 
 async function notificarTarea({ tarea_id, asignado_a, titulo, descripcion }) {
   if (!asignado_a) return
@@ -139,7 +140,7 @@ export default function Tareas() {
                 <div className="flex-1 min-w-0">
                   <div className={`font-semibold text-sm ${t.completada ? 'line-through text-gray-400' : 'text-gray-800'}`}>{t.titulo}</div>
                   <div className="text-xs text-gray-500 mt-0.5">
-                    {t.fincas?.nombre} {t.fecha_vencimiento ? `· Vence: ${t.fecha_vencimiento}` : ''}
+                    {t.fincas?.nombre} {t.fecha_vencimiento ? `· Vence: ${fmtFecha(t.fecha_vencimiento)}` : ''}
                   </div>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${prioridadColor(t.prioridad)}`}>{t.prioridad}</span>
@@ -160,7 +161,7 @@ export default function Tareas() {
             {detalle.descripcion && <p className="text-gray-600 text-sm">{detalle.descripcion}</p>}
             <div className="text-xs text-gray-400 space-y-1">
               <div>Finca: {detalle.fincas?.nombre}</div>
-              {detalle.fecha_vencimiento && <div>Vence: {detalle.fecha_vencimiento}</div>}
+              {detalle.fecha_vencimiento && <div>Vence: {fmtFecha(detalle.fecha_vencimiento)}</div>}
             </div>
 
             {/* Fotos evidencia */}

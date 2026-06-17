@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { fmtFecha } from '../lib/fecha'
 
 export default function Busqueda() {
   const navigate = useNavigate()
@@ -101,7 +102,7 @@ export default function Busqueda() {
               <Grupo titulo="💉 Eventos sanitarios">
                 {resultados.eventos.map(e => (
                   <Fila key={e.id} onClick={() => navigate(`/animales/${e.animales?.id ?? ''}`)}>
-                    <div className="font-semibold text-sm text-gray-800">{e.tipo} · {e.fecha}</div>
+                    <div className="font-semibold text-sm text-gray-800">{e.tipo} · {fmtFecha(e.fecha)}</div>
                     {e.diagnostico && <div className="text-xs text-gray-500">{e.diagnostico}</div>}
                     <div className="text-xs text-gray-400">{e.animales?.identificacion}{e.animales?.nombre ? ` (${e.animales.nombre})` : ''}</div>
                   </Fila>

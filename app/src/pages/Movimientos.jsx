@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fmtFecha } from '../lib/fecha'
 
 const TIPOS = ['nacimiento','cambio_categoria','traslado','compra','venta','muerte','descarte']
 const TIPO_ICON = {
@@ -127,7 +128,7 @@ export default function Movimientos() {
                   {m.animales ? `${m.animales.identificacion}${m.animales.nombre ? ` · ${m.animales.nombre}` : ''}` : '—'}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {m.fecha} · {m.tipo}
+                  {fmtFecha(m.fecha)} · {m.tipo}
                   {m.fincas?.nombre && ` · ${m.fincas.nombre}`}
                   {m.finca_destino?.nombre && ` → ${m.finca_destino.nombre}`}
                 </div>

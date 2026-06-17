@@ -125,7 +125,7 @@ export default function Reportes() {
                         title={`${fecha}: ${litros.toFixed(1)} L`}
                       />
                       <span className="text-gray-300 text-[8px] rotate-90 origin-left translate-y-3">
-                        {fecha.slice(5)}
+                        {fecha.slice(8)}/{fecha.slice(5,7)}
                       </span>
                     </div>
                   ))}

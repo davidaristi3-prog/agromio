@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
+import { fmtFecha } from '../lib/fecha'
 
 const META_DEFAULT = 10000
 
@@ -10,6 +11,8 @@ export default function Dashboard() {
   const [resumen, setResumen] = useState({ fincas: 0, animales: 0, enOrdeno: 0, litrosHoy: 0, litrosAyer: 0 })
   const [finanzas, setFinanzas] = useState({ ingresos: 0, gastos: 0 })
   const [alertas, setAlertas] = useState([])
+  const [pendientes, setPendientes] = useState([])
+  const [aprobando, setAprobando] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [meta, setMeta] = useState(() => Number(localStorage.getItem('meta_litros') || META_DEFAULT))
   const [editandoMeta, setEditandoMeta] = useState(false)
@@ -58,10 +61,24 @@ export default function Dashboard() {
       setResumen({ fincas: fincas ?? 0, animales: animales ?? 0, enOrdeno: enOrdeno ?? 0, litrosHoy, litrosAyer })
       setFinanzas({ ingresos: ingMes, gastos: gasMes })
 
+      // Pendientes de aprobación (RLS ordenos_select ya usa get_mi_rol())
+      const [{ data: ordPend }, { data: sanPend }, { data: repPend }] = await Promise.all([
+        supabase.from('ordenos').select('id,fecha,litros').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+        supabase.from('eventos_sanitarios').select('id,fecha,tipo,diagnostico').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+        supabase.from('eventos_reproductivos').select('id,fecha,tipo').eq('estado', 'pendiente').order('created_at', { ascending: false }),
+      ])
+
+      const items = [
+        ...(ordPend ?? []).map(r => ({ ...r, _tabla: 'ordenos', _desc: `Ordeño — ${Number(r.litros).toFixed(1)} L` })),
+        ...(sanPend ?? []).map(r => ({ ...r, _tabla: 'eventos_sanitarios', _desc: `Sanidad: ${r.tipo}${r.diagnostico ? ` — ${r.diagnostico}` : ''}` })),
+        ...(repPend ?? []).map(r => ({ ...r, _tabla: 'eventos_reproductivos', _desc: `Reproducción: ${r.tipo}` })),
+      ]
+      setPendientes(items)
+
       const nuevasAlertas = []
       retiros?.forEach(a => nuevasAlertas.push({ tipo: 'retiro', texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
       tareasVencidas?.forEach(t => nuevasAlertas.push({ tipo: 'tarea', texto: `Actividad vencida: ${t.titulo}`, color: 'orange' }))
-      partosProximos?.forEach(p => nuevasAlertas.push({ tipo: 'parto', texto: `Parto próximo: ${p.animales?.identificacion ?? '?'} el ${p.fecha_probable_parto}`, color: 'yellow' }))
+      partosProximos?.forEach(p => nuevasAlertas.push({ tipo: 'parto', texto: `Parto próximo: ${p.animales?.identificacion ?? '?'} el ${fmtFecha(p.fecha_probable_parto)}`, color: 'yellow' }))
       stockBajo?.forEach(i => nuevasAlertas.push({ tipo: 'stock', texto: `Stock bajo: ${i.nombre} (${i.stock_actual} unidades)`, color: 'orange' }))
       setAlertas(nuevasAlertas)
       setCargando(false)
@@ -72,6 +89,21 @@ export default function Dashboard() {
   const pct = Math.min((resumen.litrosHoy / meta) * 100, 100)
   const balance = finanzas.ingresos - finanzas.gastos
   const diffAyer = resumen.litrosHoy - resumen.litrosAyer
+
+  async function aprobar(item) {
+    setAprobando(item.id)
+    await supabase.from(item._tabla).update({ estado: 'aprobado', aprobado_por: perfil.id }).eq('id', item.id)
+    setAprobando(null)
+    setPendientes(p => p.filter(x => x.id !== item.id))
+  }
+
+  async function rechazar(item) {
+    const comentario = prompt('Motivo del rechazo (opcional):') ?? ''
+    setAprobando(item.id)
+    await supabase.from(item._tabla).update({ estado: 'rechazado', comentario_rechazo: comentario || null }).eq('id', item.id)
+    setAprobando(null)
+    setPendientes(p => p.filter(x => x.id !== item.id))
+  }
 
   function guardarMeta(e) {
     e.preventDefault()
@@ -171,6 +203,41 @@ export default function Dashboard() {
               {a.texto}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Bandeja de aprobación */}
+      {pendientes.length > 0 && (
+        <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
+            <span className="text-amber-500 text-lg">⏳</span>
+            <span className="text-sm font-bold text-amber-800">Pendientes de aprobación</span>
+            <span className="ml-auto bg-amber-200 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendientes.length}</span>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {pendientes.map(item => (
+              <div key={item.id} className="px-4 py-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{item._desc}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{fmtFecha(item.fecha)}</p>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => rechazar(item)}
+                    disabled={aprobando === item.id}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-40 transition">
+                    Rechazar
+                  </button>
+                  <button
+                    onClick={() => aprobar(item)}
+                    disabled={aprobando === item.id}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-verde-600 text-white hover:bg-verde-700 disabled:opacity-40 transition">
+                    {aprobando === item.id ? '...' : 'Aprobar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

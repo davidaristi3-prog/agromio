@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
+import { fmtFecha } from '../lib/fecha'
 
 export default function DashboardMayordomo() {
   const { perfil } = useAuth()
@@ -134,7 +135,7 @@ export default function DashboardMayordomo() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800">{item._desc}</p>
                     <p className="text-xs text-gray-400">
-                      {item.fecha} · Registrado por {item.usuarios?.nombre ?? 'trabajador'}
+                      {fmtFecha(item.fecha)} · Registrado por {item.usuarios?.nombre ?? 'trabajador'}
                     </p>
                   </div>
                 </div>

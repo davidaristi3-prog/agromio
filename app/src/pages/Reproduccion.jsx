@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fmtFecha } from '../lib/fecha'
 
 const TIPOS = ['celo','servicio','diagnostico_prenez','parto','aborto','secado']
 const METODOS = ['inseminacion','monta','transferencia_embrion']
@@ -107,7 +108,7 @@ export default function Reproduccion() {
           <p className="text-sm font-semibold text-yellow-800">🐄 Partos próximos (30 días)</p>
           {proximosPartos.map(e => (
             <p key={e.id} className="text-xs text-yellow-700 mt-1">
-              {e.animales?.identificacion} — {e.fecha_probable_parto}
+              {e.animales?.identificacion} — {fmtFecha(e.fecha_probable_parto)}
             </p>
           ))}
         </div>
@@ -134,11 +135,11 @@ export default function Reproduccion() {
                 <div className="font-semibold text-sm text-gray-800">
                   {ev.animales ? `${ev.animales.identificacion}${ev.animales.nombre ? ` · ${ev.animales.nombre}` : ''}` : ev.fincas?.nombre}
                 </div>
-                <div className="text-xs text-gray-500">{ev.fecha} · {ev.tipo.replace('_',' ')} · {ev.fincas?.nombre}</div>
+                <div className="text-xs text-gray-500">{fmtFecha(ev.fecha)} · {ev.tipo.replace('_',' ')} · {ev.fincas?.nombre}</div>
                 {ev.metodo && <div className="text-xs text-gray-500">{ev.metodo}{ev.toro_o_semen ? ` · ${ev.toro_o_semen}` : ''}</div>}
                 {ev.resultado && <div className="text-xs text-gray-600 mt-0.5">Resultado: {ev.resultado}</div>}
                 {ev.fecha_probable_parto && (
-                  <div className="text-xs text-yellow-600 mt-0.5">🐄 Parto probable: {ev.fecha_probable_parto}</div>
+                  <div className="text-xs text-yellow-600 mt-0.5">🐄 Parto probable: {fmtFecha(ev.fecha_probable_parto)}</div>
                 )}
               </div>
             </div>

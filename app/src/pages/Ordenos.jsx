@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fmtFecha } from '../lib/fecha'
 
 export default function Ordenos() {
   const { perfil } = useAuth()
@@ -108,7 +109,7 @@ export default function Ordenos() {
                 <div className="font-semibold text-sm text-gray-800">
                   {r.animales ? `${r.animales.identificacion}${r.animales.nombre ? ` · ${r.animales.nombre}` : ''}` : 'Finca (sin animal)'}
                 </div>
-                <div className="text-xs text-gray-500">{r.fincas?.nombre} · {r.fecha} · Ordeño #{r.numero_ordeno}</div>
+                <div className="text-xs text-gray-500">{r.fincas?.nombre} · {fmtFecha(r.fecha)} · Ordeño #{r.numero_ordeno}</div>
               </div>
               <div className="text-lg font-bold text-verde-700">{Number(r.litros).toFixed(1)} L</div>
             </div>

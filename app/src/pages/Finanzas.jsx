@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fmtFecha } from '../lib/fecha'
 
 const PERIODOS = [
   { label: 'Este mes',        dias: 30  },
@@ -170,7 +171,7 @@ export default function Finanzas() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-gray-800">{t.categoria}</div>
                   {t.descripcion && <div className="text-xs text-gray-500 truncate">{t.descripcion}</div>}
-                  <div className="text-xs text-gray-400">{t.fecha}</div>
+                  <div className="text-xs text-gray-400">{fmtFecha(t.fecha)}</div>
                 </div>
                 <div className={`text-sm font-bold ${t.tipo === 'ingreso' ? 'text-verde-700' : 'text-red-500'}`}>
                   {t.tipo === 'ingreso' ? '+' : '-'}${Number(t.valor).toLocaleString('es-CO')}

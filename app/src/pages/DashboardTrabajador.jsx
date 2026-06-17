@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
+import { fmtFecha } from '../lib/fecha'
 
 export default function DashboardTrabajador() {
   const { perfil } = useAuth()
@@ -101,7 +102,7 @@ export default function DashboardTrabajador() {
                   <span className="text-xl">{t.prioridad === 'alta' ? '🔴' : t.prioridad === 'media' ? '🟡' : '🟢'}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">{t.titulo}</p>
-                    <p className="text-xs text-gray-400">{t.fincas?.nombre}{t.fecha_vencimiento ? ` · ${vencida ? '⚠️ Venció' : 'Vence'} ${t.fecha_vencimiento}` : ''}</p>
+                    <p className="text-xs text-gray-400">{t.fincas?.nombre}{t.fecha_vencimiento ? ` · ${vencida ? '⚠️ Venció' : 'Vence'} ${fmtFecha(t.fecha_vencimiento)}` : ''}</p>
                   </div>
                   {vencida && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">Vencida</span>}
                 </Link>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { fmtFecha } from '../lib/fecha'
 
 const TABS = ['Resumen', 'Fotos', 'Ordeños', 'Sanidad', 'Reproducción', 'Movimientos']
 
@@ -112,7 +113,7 @@ export default function FichaAnimal() {
             color={animal.estado_productivo === 'en_ordeno' ? 'green' : animal.estado_productivo === 'seca' ? 'gray' : 'yellow'} />
         )}
         {animal.estado_reproductivo && <Badge label={animal.estado_reproductivo} color="blue" />}
-        {animal.en_retiro_leche && <Badge label={`Retiro hasta ${animal.fecha_fin_retiro ?? '?'}`} color="red" />}
+        {animal.en_retiro_leche && <Badge label={`Retiro hasta ${fmtFecha(animal.fecha_fin_retiro)}`} color="red" />}
         {!animal.activa && <Badge label="Inactivo" color="gray" />}
       </div>
 
@@ -141,7 +142,7 @@ export default function FichaAnimal() {
             </div>
           )}
           <div className="grid grid-cols-2 gap-3">
-            <InfoCard label="Nacimiento" valor={animal.fecha_nacimiento ?? '—'} />
+            <InfoCard label="Nacimiento" valor={fmtFecha(animal.fecha_nacimiento)} />
             <InfoCard label="Edad" valor={edad !== null ? `${edad} años` : '—'} />
             <InfoCard label="Sexo" valor={animal.sexo ?? '—'} />
             <InfoCard label="Litros (7 días)" valor={`${litros7.toFixed(1)} L`} />
@@ -167,7 +168,7 @@ export default function FichaAnimal() {
               {fotos.map(f => (
                 <div key={f.id} className="relative cursor-pointer" onClick={() => setFotoAmpliada(f.url)}>
                   <img src={f.url} alt="foto animal" className="w-full h-36 object-cover rounded-xl border border-gray-200" />
-                  <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">{f.fecha}</div>
+                  <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">{fmtFecha(f.fecha)}</div>
                 </div>
               ))}
             </div>
@@ -198,7 +199,7 @@ export default function FichaAnimal() {
                 <span className="text-xl">🥛</span>
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-gray-800">{Number(o.litros).toFixed(1)} L</div>
-                  <div className="text-xs text-gray-500">{o.fecha} · Ordeño #{o.numero_ordeno}</div>
+                  <div className="text-xs text-gray-500">{fmtFecha(o.fecha)} · Ordeño #{o.numero_ordeno}</div>
                 </div>
               </div>
             ))
@@ -215,10 +216,10 @@ export default function FichaAnimal() {
                 <div className="flex items-center gap-2">
                   <span className="text-lg">💉</span>
                   <div>
-                    <div className="text-sm font-semibold text-gray-800">{s.tipo} · {s.fecha}</div>
+                    <div className="text-sm font-semibold text-gray-800">{s.tipo} · {fmtFecha(s.fecha)}</div>
                     {s.diagnostico && <div className="text-xs text-gray-600">{s.diagnostico}</div>}
                     {s.medicamento && <div className="text-xs text-gray-500">{s.medicamento}</div>}
-                    {s.requiere_retiro && <div className="text-xs text-red-500 mt-0.5">Retiro hasta {s.fecha_fin_retiro}</div>}
+                    {s.requiere_retiro && <div className="text-xs text-red-500 mt-0.5">Retiro hasta {fmtFecha(s.fecha_fin_retiro)}</div>}
                   </div>
                 </div>
                 {s.descripcion && <p className="text-xs text-gray-500 mt-1 pl-7">{s.descripcion}</p>}
@@ -235,10 +236,10 @@ export default function FichaAnimal() {
             ? <p className="text-gray-400 text-sm text-center py-6">Sin eventos reproductivos</p>
             : reproductivos.map(r => (
               <div key={r.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-                <div className="text-sm font-semibold text-gray-800">{r.tipo.replace('_',' ')} · {r.fecha}</div>
+                <div className="text-sm font-semibold text-gray-800">{r.tipo.replace('_',' ')} · {fmtFecha(r.fecha)}</div>
                 {r.metodo && <div className="text-xs text-gray-500">{r.metodo}{r.toro_o_semen ? ` · ${r.toro_o_semen}` : ''}</div>}
                 {r.resultado && <div className="text-xs text-gray-600">Resultado: {r.resultado}</div>}
-                {r.fecha_probable_parto && <div className="text-xs text-yellow-600">🐄 Parto probable: {r.fecha_probable_parto}</div>}
+                {r.fecha_probable_parto && <div className="text-xs text-yellow-600">🐄 Parto probable: {fmtFecha(r.fecha_probable_parto)}</div>}
                 {r.descripcion && <div className="text-xs text-gray-500 mt-0.5">{r.descripcion}</div>}
               </div>
             ))
@@ -252,7 +253,7 @@ export default function FichaAnimal() {
             ? <p className="text-gray-400 text-sm text-center py-6">Sin movimientos registrados</p>
             : movimientos.map(m => (
               <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-                <div className="text-sm font-semibold text-gray-800">{m.tipo.replace('_',' ')} · {m.fecha}</div>
+                <div className="text-sm font-semibold text-gray-800">{m.tipo.replace('_',' ')} · {fmtFecha(m.fecha)}</div>
                 <div className="text-xs text-gray-500">
                   {m.finca_origen?.nombre ?? '—'}{m.finca_destino?.nombre ? ` → ${m.finca_destino.nombre}` : ''}
                 </div>
