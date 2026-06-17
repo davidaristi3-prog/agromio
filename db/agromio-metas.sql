@@ -1,7 +1,7 @@
 -- ============================================================
 -- AGROMIO · Módulo Metas (indicadores / objetivos)
 -- Cómo usarlo: Supabase > SQL Editor > New query > pega todo > Run.
--- Córrelo UNA sola vez. Si ves "already exists", ya estaba aplicado.
+-- Se puede correr varias veces sin problema (es idempotente).
 -- ============================================================
 
 create table if not exists metas (
@@ -26,16 +26,28 @@ create index if not exists idx_metas_finca on metas(finca_id);
 
 alter table metas enable row level security;
 
--- Ver: metas globales (finca_id null) o de fincas a las que tiene acceso.
+-- Ver: el propietario ve todo; los demás ven metas globales (finca_id null)
+-- o de las fincas que tienen asignadas.
+drop policy if exists metas_select on metas;
 create policy metas_select on metas for select to authenticated
-  using ( finca_id is null or public.tiene_acceso_finca(finca_id) );
+  using (
+    (select rol from usuarios where id = auth.uid()) = 'propietario'
+    or finca_id is null
+    or finca_id in (select finca_id from asignaciones_finca where usuario_id = auth.uid())
+  );
 
 -- Crear / editar / eliminar: solo el propietario.
+drop policy if exists metas_insert on metas;
 create policy metas_insert on metas for insert to authenticated
-  with check ( public.es_propietario() );
+  with check ( (select rol from usuarios where id = auth.uid()) = 'propietario' );
+
+drop policy if exists metas_update on metas;
 create policy metas_update on metas for update to authenticated
-  using ( public.es_propietario() ) with check ( public.es_propietario() );
+  using ( (select rol from usuarios where id = auth.uid()) = 'propietario' )
+  with check ( (select rol from usuarios where id = auth.uid()) = 'propietario' );
+
+drop policy if exists metas_delete on metas;
 create policy metas_delete on metas for delete to authenticated
-  using ( public.es_propietario() );
+  using ( (select rol from usuarios where id = auth.uid()) = 'propietario' );
 
 -- Fin del módulo Metas · AGROMIO
