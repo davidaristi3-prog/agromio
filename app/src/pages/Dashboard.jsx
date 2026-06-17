@@ -61,19 +61,9 @@ export default function Dashboard() {
       setResumen({ fincas: fincas ?? 0, animales: animales ?? 0, enOrdeno: enOrdeno ?? 0, litrosHoy, litrosAyer })
       setFinanzas({ ingresos: ingMes, gastos: gasMes })
 
-      // Pendientes de aprobación (RLS ordenos_select ya usa get_mi_rol())
-      const [{ data: ordPend }, { data: sanPend }, { data: repPend }] = await Promise.all([
-        supabase.from('ordenos').select('id,fecha,litros').eq('estado', 'pendiente').order('created_at', { ascending: false }),
-        supabase.from('eventos_sanitarios').select('id,fecha,tipo,diagnostico').eq('estado', 'pendiente').order('created_at', { ascending: false }),
-        supabase.from('eventos_reproductivos').select('id,fecha,tipo').eq('estado', 'pendiente').order('created_at', { ascending: false }),
-      ])
-
-      const items = [
-        ...(ordPend ?? []).map(r => ({ ...r, _tabla: 'ordenos', _desc: `Ordeño — ${Number(r.litros).toFixed(1)} L` })),
-        ...(sanPend ?? []).map(r => ({ ...r, _tabla: 'eventos_sanitarios', _desc: `Sanidad: ${r.tipo}${r.diagnostico ? ` — ${r.diagnostico}` : ''}` })),
-        ...(repPend ?? []).map(r => ({ ...r, _tabla: 'eventos_reproductivos', _desc: `Reproducción: ${r.tipo}` })),
-      ]
-      setPendientes(items)
+      // Pendientes via Edge Function (service_role, sin restricciones de RLS)
+      const { data: fnData } = await supabase.functions.invoke('get-pendientes')
+      setPendientes(fnData?.items ?? [])
 
       const nuevasAlertas = []
       retiros?.forEach(a => nuevasAlertas.push({ tipo: 'retiro', texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
