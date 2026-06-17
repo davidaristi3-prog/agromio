@@ -10,11 +10,21 @@ function labelFrecuencia(t) {
   return 'Todos los días'
 }
 
-function esTareaDeHoy(t) {
-  const ahora = new Date()
-  if (t.frecuencia === 'semanal') return t.dia_semana === ahora.getDay()
-  if (t.frecuencia === 'mensual') return t.dia_mes === ahora.getDate()
-  return true
+function proximaFecha(t) {
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+  if (t.frecuencia === 'mensual') {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth(), t.dia_mes)
+    if (d < hoy) d.setMonth(d.getMonth() + 1)
+    return d.toISOString().split('T')[0]
+  }
+  if (t.frecuencia === 'semanal') {
+    const diff = (t.dia_semana - hoy.getDay() + 7) % 7
+    const d = new Date(hoy)
+    d.setDate(hoy.getDate() + diff)
+    return d.toISOString().split('T')[0]
+  }
+  return hoy.toISOString().split('T')[0]
 }
 
 async function notificarCompletacion(tarea, trabajador) {
@@ -77,32 +87,44 @@ function VistaTrabajador({ perfil }) {
     const ids = ts?.map(t => t.id) ?? []
     let comp = {}
     if (ids.length > 0) {
+      // Fetch completaciones para los próximos 31 días (cubre tareas mensuales anticipadas)
+      const limite = new Date(); limite.setDate(limite.getDate() + 31)
       const { data: cs } = await supabase.from('completaciones_diarias')
-        .select('id,tarea_recurrente_id,foto_url,audio_url,nota')
-        .in('tarea_recurrente_id', ids).eq('fecha', hoy)
-      cs?.forEach(c => { comp[c.tarea_recurrente_id] = c })
+        .select('id,tarea_recurrente_id,fecha,foto_url,audio_url,nota')
+        .in('tarea_recurrente_id', ids)
+        .gte('fecha', hoy)
+        .lte('fecha', limite.toISOString().split('T')[0])
+      // Clave: id_tarea + fecha objetivo
+      cs?.forEach(c => { comp[`${c.tarea_recurrente_id}_${c.fecha}`] = c })
     }
-    setTareas((ts ?? []).filter(esTareaDeHoy))
+    setTareas(ts ?? [])
     setCompletadas(comp)
     setCargando(false)
   }
 
   useEffect(() => { cargar() }, [perfil?.id])
 
-  const hechas = tareas.filter(t => completadas[t.id])
-  const pendientes = tareas.filter(t => !completadas[t.id])
+  const tareasHoy = tareas.filter(t => proximaFecha(t) === hoy)
+  const tareasProximas = tareas.filter(t => proximaFecha(t) > hoy)
+
+  const hechasHoy = tareasHoy.filter(t => completadas[`${t.id}_${hoy}`])
+  const pendientesHoy = tareasHoy.filter(t => !completadas[`${t.id}_${hoy}`])
+
+  function keyComp(t) { return `${t.id}_${proximaFecha(t)}` }
 
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Mis actividades de hoy</h2>
-        <span className="text-sm text-gray-500">{hechas.length}/{tareas.length} hechas</span>
+        {tareasHoy.length > 0 && (
+          <span className="text-sm text-gray-500">{hechasHoy.length}/{tareasHoy.length} hechas</span>
+        )}
       </div>
 
-      {tareas.length > 0 && (
+      {tareasHoy.length > 0 && (
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div className="bg-verde-600 h-2.5 rounded-full transition-all duration-500"
-            style={{ width: `${tareas.length > 0 ? (hechas.length / tareas.length) * 100 : 0}%` }} />
+            style={{ width: `${(hechasHoy.length / tareasHoy.length) * 100}%` }} />
         </div>
       )}
 
@@ -113,17 +135,17 @@ function VistaTrabajador({ perfil }) {
         </div>
       ) : (
         <>
-          {hechas.length === tareas.length && (
-            <div className="bg-verde-50 border border-verde-200 rounded-2xl p-5 text-center">
-              <p className="text-4xl mb-2">🎉</p>
-              <p className="text-verde-800 font-bold text-sm">¡Todas las actividades completadas!</p>
-            </div>
-          )}
-
-          {pendientes.length > 0 && (
+          {/* Tareas de hoy */}
+          {tareasHoy.length > 0 && (
             <div className="space-y-2">
-              {pendientes.map(t => (
-                <button key={t.id} onClick={() => setModalTarea(t)}
+              {hechasHoy.length === tareasHoy.length && (
+                <div className="bg-verde-50 border border-verde-200 rounded-2xl p-5 text-center">
+                  <p className="text-4xl mb-2">🎉</p>
+                  <p className="text-verde-800 font-bold text-sm">¡Todas las actividades de hoy completadas!</p>
+                </div>
+              )}
+              {pendientesHoy.map(t => (
+                <button key={t.id} onClick={() => setModalTarea({ ...t, _targetFecha: hoy })}
                   className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 flex items-center gap-3 text-left shadow-sm active:bg-gray-50 transition">
                   <div className="w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0" />
                   <div className="flex-1">
@@ -134,16 +156,8 @@ function VistaTrabajador({ perfil }) {
                   <span className="text-verde-600 text-sm font-medium whitespace-nowrap">Completar ›</span>
                 </button>
               ))}
-            </div>
-          )}
-
-          {hechas.length > 0 && (
-            <div className="space-y-2">
-              {pendientes.length > 0 && (
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2">Completadas</p>
-              )}
-              {hechas.map(t => {
-                const c = completadas[t.id]
+              {hechasHoy.map(t => {
+                const c = completadas[`${t.id}_${hoy}`]
                 return (
                   <div key={t.id} className="bg-verde-50 border border-verde-200 rounded-2xl px-4 py-4 flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-verde-600 flex items-center justify-center flex-shrink-0">
@@ -162,12 +176,50 @@ function VistaTrabajador({ perfil }) {
               })}
             </div>
           )}
+
+          {/* Tareas próximas */}
+          {tareasProximas.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2">Próximas</p>
+              {tareasProximas.map(t => {
+                const target = proximaFecha(t)
+                const comp = completadas[keyComp(t)]
+                const [y, m, d] = target.split('-')
+                const etiqueta = `${d}/${m}/${y}`
+                return comp ? (
+                  <div key={t.id} className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-4 flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-bold">✓</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-blue-800 line-through">{t.titulo}</p>
+                      <p className="text-xs text-blue-500">Anticipada · {etiqueta}</p>
+                    </div>
+                    {(comp.foto_url || comp.audio_url || comp.nota) && (
+                      <button onClick={() => setEvidenciaModal(comp)}
+                        className="text-xs text-blue-600 font-medium whitespace-nowrap">Ver evidencia</button>
+                    )}
+                  </div>
+                ) : (
+                  <button key={t.id} onClick={() => setModalTarea({ ...t, _targetFecha: target })}
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 flex items-center gap-3 text-left shadow-sm active:bg-gray-50 transition opacity-80">
+                    <div className="w-6 h-6 rounded-full border-2 border-gray-200 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-700">{t.titulo}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{labelFrecuencia(t)} · próxima: {etiqueta}</p>
+                    </div>
+                    <span className="text-gray-400 text-sm font-medium whitespace-nowrap">Adelantar ›</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </>
       )}
 
       {modalTarea && (
         <ModalCompletar
-          tarea={modalTarea} perfil={perfil} hoy={hoy}
+          tarea={modalTarea} perfil={perfil} targetFecha={modalTarea._targetFecha}
           onClose={() => setModalTarea(null)}
           onCompletada={() => { setModalTarea(null); cargar() }}
         />
@@ -178,7 +230,8 @@ function VistaTrabajador({ perfil }) {
 }
 
 // ─── Modal completar tarea ──────────────────────────────────────────────────
-function ModalCompletar({ tarea, perfil, hoy, onClose, onCompletada }) {
+function ModalCompletar({ tarea, perfil, targetFecha, onClose, onCompletada }) {
+  const hoy = targetFecha
   const [foto, setFoto] = useState(null)
   const [audio, setAudio] = useState(null)
   const [nota, setNota] = useState('')
