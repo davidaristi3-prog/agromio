@@ -65,6 +65,7 @@ export default function Potreros() {
   const [seleccion, setSeleccion] = useState(null)   // potrero tocado (bottom sheet)
   const [enPotrero, setEnPotrero] = useState(null)    // nombre del potrero donde está el GPS
   const [mapListo, setMapListo] = useState(false)
+  const [mapError, setMapError] = useState('')
 
   const contRef = useRef(null)
   const mapRef = useRef(null)
@@ -91,6 +92,10 @@ export default function Potreros() {
       zoom: 12,
     })
     mapRef.current = map
+    map.on('error', e => {
+      const msg = e?.error?.message || 'No se pudo cargar el mapa'
+      setMapError(msg)
+    })
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
     const geo = new mapboxgl.GeolocateControl({
@@ -131,6 +136,9 @@ export default function Potreros() {
       map.on('mouseenter', 'potreros-fill', () => { map.getCanvas().style.cursor = 'pointer' })
       map.on('mouseleave', 'potreros-fill', () => { map.getCanvas().style.cursor = '' })
       setMapListo(true)
+      // Asegurar que el lienzo tome el tamaño real del contenedor
+      map.resize()
+      setTimeout(() => map.resize(), 300)
     })
 
     return () => { map.remove(); mapRef.current = null }
@@ -222,7 +230,14 @@ export default function Potreros() {
             </div>
           )}
 
-          <div ref={contRef} className="w-full h-[62vh] rounded-xl overflow-hidden border border-gray-200" />
+          {mapError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+              <p className="font-semibold mb-0.5">El mapa reportó un error:</p>
+              <p className="break-words">{mapError}</p>
+              <p className="text-xs text-red-500 mt-1">Si menciona "Unauthorized" o "401", el token de Mapbox es inválido o tiene restricciones.</p>
+            </div>
+          )}
+          <div ref={contRef} className="w-full h-[62vh] rounded-xl overflow-hidden border border-gray-200 bg-gray-100" />
 
           <p className="text-xs text-gray-400 text-center">
             {puedeEditar
