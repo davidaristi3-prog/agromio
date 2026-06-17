@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const MODULOS_PROPIETARIO = [
+  { to: '/metas',      icon: '🎯', label: 'Metas',       desc: 'Objetivos y avance con semáforo' },
   { to: '/inventario', icon: '📦', label: 'Inventario',  desc: 'Medicamentos, concentrado, minerales' },
   { to: '/fincas',     icon: '🏡', label: 'Fincas',      desc: 'Gestión de fincas y lotes/potreros' },
   { to: '/equipo',     icon: '👥', label: 'Equipo',      desc: 'Mayordomos, trabajadores y asignaciones' },
@@ -11,6 +12,7 @@ const MODULOS_PROPIETARIO = [
 ]
 
 const MODULOS_MAYORDOMO = [
+  { to: '/metas',      icon: '🎯', label: 'Metas',      desc: 'Objetivos y avance con semáforo' },
   { to: '/inventario', icon: '📦', label: 'Inventario', desc: 'Medicamentos, concentrado, minerales' },
   { to: '/fincas',     icon: '🏡', label: 'Fincas',     desc: 'Gestión de fincas y lotes/potreros' },
   { to: '/perfil',     icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },

@@ -24,6 +24,7 @@ import Perfil from './pages/Perfil'
 import TareasRecurrentes from './pages/TareasRecurrentes'
 import HistorialAprobaciones from './pages/HistorialAprobaciones'
 import ResumenActividades from './pages/ResumenActividades'
+import Metas from './pages/Metas'
 
 // Pestañas del módulo Animales (iguales para todos los roles)
 const TABS_ANIMALES = [
@@ -92,6 +93,7 @@ function Rutas() {
           <Route path="/equipo"     element={<Usuarios />} />
           <Route path="/financiero" element={<Finanzas />} />
           <Route path="/reportes"   element={<Reportes />} />
+          <Route path="/metas"      element={<Metas />} />
           <Route path="/perfil"     element={<Perfil />} />
           <Route path="/busqueda"   element={<Busqueda />} />
 
