@@ -260,8 +260,22 @@ function VistaTrabajador({ perfil }) {
                           <p className="text-xs text-red-500 mt-1">Motivo: {r.comentario_rechazo}</p>
                         )}
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${badge}`}>{label}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${badge}`}>{label}</span>
                     </div>
+                    {r.estado === 'rechazado' && (
+                      <div className="mt-2 ml-7">
+                        {r.comentario_rechazo && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-2">
+                            <p className="text-xs text-gray-500 font-medium mb-0.5">Motivo del rechazo:</p>
+                            <p className="text-xs text-gray-700">"{r.comentario_rechazo}"</p>
+                          </div>
+                        )}
+                        <button onClick={() => setModalReporte(r)}
+                          className="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg font-semibold">
+                          ✏️ Corregir y reenviar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -285,6 +299,7 @@ function VistaTrabajador({ perfil }) {
       {modalReporte && (
         <ModalReporte
           perfil={perfil} fincas={fincas} hoy={hoy}
+          reporteEditar={modalReporte !== true ? modalReporte : null}
           onClose={() => setModalReporte(false)}
           onGuardado={() => { setModalReporte(false); cargarReportes() }}
         />
@@ -405,8 +420,14 @@ function ModalCompletar({ tarea, perfil, targetFecha, onClose, onCompletada }) {
 }
 
 // ─── Modal reportar actividad extraordinaria ────────────────────────────────
-function ModalReporte({ perfil, fincas, hoy, onClose, onGuardado }) {
-  const [form, setForm] = useState({ titulo: '', descripcion: '', finca_id: '', fecha: hoy })
+function ModalReporte({ perfil, fincas, hoy, reporteEditar, onClose, onGuardado }) {
+  const esEdicion = !!reporteEditar
+  const [form, setForm] = useState({
+    titulo: reporteEditar?.titulo ?? '',
+    descripcion: reporteEditar?.descripcion ?? '',
+    finca_id: reporteEditar?.finca_id ?? '',
+    fecha: reporteEditar?.fecha ?? hoy,
+  })
   const [foto, setFoto] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -425,7 +446,7 @@ function ModalReporte({ perfil, fincas, hoy, onClose, onGuardado }) {
     setGuardando(true)
     setError('')
 
-    let foto_url = null
+    let foto_url = reporteEditar?.foto_url ?? null
     if (foto) {
       const ext = foto.name.split('.').pop()
       const path = `reportes/${perfil.id}/${form.fecha}_${Date.now()}.${ext}`
@@ -434,14 +455,29 @@ function ModalReporte({ perfil, fincas, hoy, onClose, onGuardado }) {
       foto_url = data.publicUrl
     }
 
-    const { error: err } = await supabase.from('reportes_trabajador').insert({
-      titulo: form.titulo.trim(),
-      descripcion: form.descripcion.trim() || null,
-      fecha: form.fecha,
-      finca_id: form.finca_id || null,
-      foto_url,
-      creado_por: perfil.id,
-    })
+    let err
+    if (esEdicion) {
+      // Corrección: actualizar y volver a pendiente
+      ;({ error: err } = await supabase.from('reportes_trabajador').update({
+        titulo: form.titulo.trim(),
+        descripcion: form.descripcion.trim() || null,
+        fecha: form.fecha,
+        finca_id: form.finca_id || null,
+        foto_url,
+        estado: 'pendiente',
+        comentario_rechazo: null,
+        aprobado_por: null,
+      }).eq('id', reporteEditar.id))
+    } else {
+      ;({ error: err } = await supabase.from('reportes_trabajador').insert({
+        titulo: form.titulo.trim(),
+        descripcion: form.descripcion.trim() || null,
+        fecha: form.fecha,
+        finca_id: form.finca_id || null,
+        foto_url,
+        creado_por: perfil.id,
+      }))
+    }
 
     setGuardando(false)
     if (err) { setError(err.message); return }
@@ -452,9 +488,15 @@ function ModalReporte({ perfil, fincas, hoy, onClose, onGuardado }) {
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-2">
-          <span className="text-2xl">⚡</span>
-          <h3 className="font-bold text-gray-800">Reportar actividad extraordinaria</h3>
+          <span className="text-2xl">{esEdicion ? '✏️' : '⚡'}</span>
+          <h3 className="font-bold text-gray-800">{esEdicion ? 'Corregir reporte' : 'Reportar actividad extraordinaria'}</h3>
         </div>
+        {esEdicion && reporteEditar.comentario_rechazo && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+            <p className="text-xs text-gray-500 font-medium mb-0.5">Motivo del rechazo anterior:</p>
+            <p className="text-sm text-red-700">"{reporteEditar.comentario_rechazo}"</p>
+          </div>
+        )}
         {error && <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-600">{error}</div>}
         <form onSubmit={guardar} className="space-y-3">
           <div>
@@ -504,7 +546,7 @@ function ModalReporte({ perfil, fincas, hoy, onClose, onGuardado }) {
             <button type="button" onClick={onClose} className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
             <button type="submit" disabled={guardando}
               className="flex-1 bg-orange-500 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
-              {guardando ? 'Enviando...' : '⚡ Enviar reporte'}
+              {guardando ? 'Enviando...' : esEdicion ? '✏️ Reenviar corregido' : '⚡ Enviar reporte'}
             </button>
           </div>
         </form>
