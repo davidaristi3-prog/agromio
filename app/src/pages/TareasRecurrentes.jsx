@@ -422,6 +422,7 @@ function VistaGestionar({ perfil }) {
       asignado_a: form.asignado_a || null,
       finca_id: form.finca_id || null,
       creado_por: perfil.id,
+      frecuencia: 'diaria',
       activa: true,
     })
     setGuardando(false)
