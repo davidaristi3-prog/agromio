@@ -2,6 +2,21 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
+const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+function labelFrecuencia(t) {
+  if (t.frecuencia === 'semanal') return `Todos los ${DIAS_SEMANA[t.dia_semana] ?? ''}`
+  if (t.frecuencia === 'mensual') return `Día ${t.dia_mes} de cada mes`
+  return 'Todos los días'
+}
+
+function esTareaDeHoy(t) {
+  const ahora = new Date()
+  if (t.frecuencia === 'semanal') return t.dia_semana === ahora.getDay()
+  if (t.frecuencia === 'mensual') return t.dia_mes === ahora.getDate()
+  return true
+}
+
 async function notificarCompletacion(tarea, trabajador) {
   try {
     const receptores = []
@@ -57,7 +72,7 @@ function VistaTrabajador({ perfil }) {
   async function cargar() {
     setCargando(true)
     const { data: ts } = await supabase.from('tareas_recurrentes')
-      .select('id,titulo,descripcion,finca_id,fincas(nombre)')
+      .select('id,titulo,descripcion,finca_id,fincas(nombre),frecuencia,dia_semana,dia_mes')
       .eq('asignado_a', perfil.id).eq('activa', true).order('created_at')
     const ids = ts?.map(t => t.id) ?? []
     let comp = {}
@@ -67,7 +82,7 @@ function VistaTrabajador({ perfil }) {
         .in('tarea_recurrente_id', ids).eq('fecha', hoy)
       cs?.forEach(c => { comp[c.tarea_recurrente_id] = c })
     }
-    setTareas(ts ?? [])
+    setTareas((ts ?? []).filter(esTareaDeHoy))
     setCompletadas(comp)
     setCargando(false)
   }
@@ -393,13 +408,13 @@ function VistaGestionar({ perfil }) {
   const [modal, setModal] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errorForm, setErrorForm] = useState('')
-  const [form, setForm] = useState({ titulo: '', descripcion: '', asignado_a: '', finca_id: '' })
+  const [form, setForm] = useState({ titulo: '', descripcion: '', asignado_a: '', finca_id: '', frecuencia: 'diaria', dia_semana: 1, dia_mes: 1 })
 
   async function cargar() {
     setCargando(true)
     const [{ data: ts }, { data: ws }, { data: fs }] = await Promise.all([
       supabase.from('tareas_recurrentes')
-        .select('id,titulo,descripcion,asignado_a,usuarios!tareas_recurrentes_asignado_a_fkey(nombre),fincas(nombre)')
+        .select('id,titulo,descripcion,asignado_a,frecuencia,dia_semana,dia_mes,usuarios!tareas_recurrentes_asignado_a_fkey(nombre),fincas(nombre)')
         .eq('activa', true).order('created_at'),
       supabase.from('usuarios').select('id,nombre').in('rol', ['trabajador', 'mayordomo']).order('nombre'),
       supabase.from('fincas').select('id,nombre').eq('activa', true).order('nombre'),
@@ -422,13 +437,15 @@ function VistaGestionar({ perfil }) {
       asignado_a: form.asignado_a || null,
       finca_id: form.finca_id || null,
       creado_por: perfil.id,
-      frecuencia: 'diaria',
+      frecuencia: form.frecuencia,
+      dia_semana: form.frecuencia === 'semanal' ? Number(form.dia_semana) : null,
+      dia_mes: form.frecuencia === 'mensual' ? Number(form.dia_mes) : null,
       activa: true,
     })
     setGuardando(false)
     if (error) { setErrorForm(error.message); return }
     setModal(false)
-    setForm({ titulo: '', descripcion: '', asignado_a: '', finca_id: '' })
+    setForm({ titulo: '', descripcion: '', asignado_a: '', finca_id: '', frecuencia: 'diaria', dia_semana: 1, dia_mes: 1 })
     cargar()
   }
 
@@ -461,6 +478,7 @@ function VistaGestionar({ perfil }) {
                 <p className="text-sm font-semibold text-gray-800">{t.titulo}</p>
                 <p className="text-xs text-gray-500">{t.usuarios?.nombre ?? '—'}{t.fincas?.nombre ? ` · ${t.fincas.nombre}` : ''}</p>
                 {t.descripcion && <p className="text-xs text-gray-400 mt-0.5">{t.descripcion}</p>}
+                <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{labelFrecuencia(t)}</span>
               </div>
               <button onClick={() => desactivar(t.id)}
                 className="text-gray-300 hover:text-red-400 text-2xl leading-none flex-shrink-0 transition">×</button>
@@ -505,6 +523,33 @@ function VistaGestionar({ perfil }) {
                   {fincas.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Frecuencia *</label>
+                <select value={form.frecuencia} onChange={e => setForm(f => ({...f, frecuencia: e.target.value}))}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+                  <option value="diaria">Todos los días</option>
+                  <option value="semanal">Semanal (un día a la semana)</option>
+                  <option value="mensual">Mensual (una vez al mes)</option>
+                </select>
+              </div>
+              {form.frecuencia === 'semanal' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Día de la semana *</label>
+                  <select value={form.dia_semana} onChange={e => setForm(f => ({...f, dia_semana: e.target.value}))}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+                    {DIAS_SEMANA.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                  </select>
+                </div>
+              )}
+              {form.frecuencia === 'mensual' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Día del mes *</label>
+                  <select value={form.dia_mes} onChange={e => setForm(f => ({...f, dia_mes: e.target.value}))}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map(d => <option key={d} value={d}>Día {d}</option>)}
+                  </select>
+                </div>
+              )}
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setModal(false)}
                   className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
