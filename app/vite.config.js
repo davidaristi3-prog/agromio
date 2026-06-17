@@ -8,6 +8,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
+      workbox: {
+        // El mapa (mapbox-gl) genera un chunk grande; subimos el límite para precachearlo.
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+      },
       manifest: {
         name: 'AGROMIO',
         short_name: 'AGROMIO',

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 
 const MODULOS_PROPIETARIO = [
   { to: '/metas',      icon: '🎯', label: 'Metas',       desc: 'Objetivos y avance con semáforo' },
+  { to: '/potreros',   icon: '🗺️', label: 'Potreros',    desc: 'Mapa satelital, dibujar cercas y ubicación' },
   { to: '/inventario', icon: '📦', label: 'Inventario',  desc: 'Medicamentos, concentrado, minerales' },
   { to: '/fincas',     icon: '🏡', label: 'Fincas',      desc: 'Gestión de fincas y lotes/potreros' },
   { to: '/equipo',     icon: '👥', label: 'Equipo',      desc: 'Mayordomos, trabajadores y asignaciones' },
@@ -13,14 +14,16 @@ const MODULOS_PROPIETARIO = [
 
 const MODULOS_MAYORDOMO = [
   { to: '/metas',      icon: '🎯', label: 'Metas',      desc: 'Objetivos y avance con semáforo' },
+  { to: '/potreros',   icon: '🗺️', label: 'Potreros',   desc: 'Mapa satelital, dibujar cercas y ubicación' },
   { to: '/inventario', icon: '📦', label: 'Inventario', desc: 'Medicamentos, concentrado, minerales' },
   { to: '/fincas',     icon: '🏡', label: 'Fincas',     desc: 'Gestión de fincas y lotes/potreros' },
   { to: '/perfil',     icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
 ]
 
 const MODULOS_TRABAJADOR = [
-  { to: '/fincas', icon: '🏡', label: 'Fincas',     desc: 'Ver fincas y lotes' },
-  { to: '/perfil', icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
+  { to: '/potreros', icon: '🗺️', label: 'Potreros',   desc: '¿En qué potrero estás? Mapa con tu ubicación' },
+  { to: '/fincas',   icon: '🏡', label: 'Fincas',     desc: 'Ver fincas y lotes' },
+  { to: '/perfil',   icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
 ]
 
 export default function Mas() {

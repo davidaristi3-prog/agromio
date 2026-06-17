@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
@@ -25,6 +26,8 @@ import TareasRecurrentes from './pages/TareasRecurrentes'
 import HistorialAprobaciones from './pages/HistorialAprobaciones'
 import ResumenActividades from './pages/ResumenActividades'
 import Metas from './pages/Metas'
+// Potreros carga el mapa (mapbox-gl, pesado) solo cuando se abre
+const Potreros = lazy(() => import('./pages/Potreros'))
 
 // Pestañas del módulo Animales (iguales para todos los roles)
 const TABS_ANIMALES = [
@@ -94,6 +97,11 @@ function Rutas() {
           <Route path="/financiero" element={<Finanzas />} />
           <Route path="/reportes"   element={<Reportes />} />
           <Route path="/metas"      element={<Metas />} />
+          <Route path="/potreros"   element={
+            <Suspense fallback={<div className="text-gray-400 text-sm pt-4">Cargando mapa...</div>}>
+              <Potreros />
+            </Suspense>
+          } />
           <Route path="/perfil"     element={<Perfil />} />
           <Route path="/busqueda"   element={<Busqueda />} />
 
