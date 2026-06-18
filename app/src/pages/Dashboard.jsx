@@ -120,6 +120,10 @@ export default function Dashboard() {
   const alertasVisibles = alertas
     .filter(a => !ocultas.has(a.key))
     .sort((x, y) => (ORDEN_ALERTA[x.color] ?? 9) - (ORDEN_ALERTA[y.color] ?? 9))
+  // Rojas/naranjas (urgentes) van arriba; las amarillas se muestran al final,
+  // justo antes del módulo financiero.
+  const alertasTop = alertasVisibles.filter(a => a.color !== 'yellow')
+  const alertasAmarillas = alertasVisibles.filter(a => a.color === 'yellow')
 
   function ocultarAlerta(key) {
     setOcultas(prev => {
@@ -222,22 +226,11 @@ export default function Dashboard() {
       {/* Histórico de producción de leche */}
       <PanelHistoricoLeche />
 
-      {/* Alertas — amarillas al final; cada una se puede ocultar del tablero */}
-      {alertasVisibles.length > 0 && (
+      {/* Alertas urgentes (rojas/naranjas) — cada una se puede ocultar del tablero */}
+      {alertasTop.length > 0 && (
         <div className="space-y-2">
-          {alertasVisibles.map(a => (
-            <div key={a.key} className={`rounded-2xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
-              a.color === 'red'    ? 'bg-red-50 text-red-700 border border-red-100' :
-              a.color === 'orange' ? 'bg-orange-50 text-orange-700 border border-orange-100' :
-                                     'bg-yellow-50 text-yellow-700 border border-yellow-100'
-            }`}>
-              <span className="flex-shrink-0 mt-0.5">{a.color === 'red' ? <Siren size={16} className="text-red-600" /> : a.color === 'orange' ? <AlertTriangle size={16} className="text-amber-600" /> : <Calendar size={16} />}</span>
-              <span className="flex-1">{a.texto}</span>
-              <button onClick={() => ocultarAlerta(a.key)} aria-label="Ocultar del tablero"
-                className="flex-shrink-0 opacity-40 hover:opacity-100 transition">
-                <X size={16} />
-              </button>
-            </div>
+          {alertasTop.map(a => (
+            <FilaAlerta key={a.key} a={a} onOcultar={ocultarAlerta} />
           ))}
         </div>
       )}
@@ -298,7 +291,16 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Balance del mes */}
+      {/* Alertas amarillas (menos urgentes) — penúltimas, antes de Finanzas */}
+      {alertasAmarillas.length > 0 && (
+        <div className="space-y-2">
+          {alertasAmarillas.map(a => (
+            <FilaAlerta key={a.key} a={a} onOcultar={ocultarAlerta} />
+          ))}
+        </div>
+      )}
+
+      {/* Balance del mes — siempre de último */}
       {!cargando && (finanzas.ingresos > 0 || finanzas.gastos > 0) && (
         <Link to="/financiero" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
@@ -324,6 +326,24 @@ export default function Dashboard() {
         </Link>
       )}
 
+    </div>
+  )
+}
+
+// ─── Fila de alerta (reutilizable, con botón para ocultar del tablero) ───────
+function FilaAlerta({ a, onOcultar }) {
+  return (
+    <div className={`rounded-2xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
+      a.color === 'red'    ? 'bg-red-50 text-red-700 border border-red-100' :
+      a.color === 'orange' ? 'bg-orange-50 text-orange-700 border border-orange-100' :
+                             'bg-yellow-50 text-yellow-700 border border-yellow-100'
+    }`}>
+      <span className="flex-shrink-0 mt-0.5">{a.color === 'red' ? <Siren size={16} className="text-red-600" /> : a.color === 'orange' ? <AlertTriangle size={16} className="text-amber-600" /> : <Calendar size={16} />}</span>
+      <span className="flex-1">{a.texto}</span>
+      <button onClick={() => onOcultar(a.key)} aria-label="Ocultar del tablero"
+        className="flex-shrink-0 opacity-40 hover:opacity-100 transition">
+        <X size={16} />
+      </button>
     </div>
   )
 }
