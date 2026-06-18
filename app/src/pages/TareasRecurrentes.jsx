@@ -461,42 +461,54 @@ function ModalReporte({ perfil, fincas, hoy, reporteEditar, onClose, onGuardado 
     setGuardando(true)
     setError('')
 
-    let foto_url = reporteEditar?.foto_url ?? null
-    if (foto) {
-      const ext = foto.name.split('.').pop()
-      const path = `reportes/${perfil.id}/${form.fecha}_${Date.now()}.${ext}`
-      await supabase.storage.from('evidencias').upload(path, foto, { upsert: true })
-      const { data } = supabase.storage.from('evidencias').getPublicUrl(path)
-      foto_url = data.publicUrl
-    }
+    try {
+      let foto_url = reporteEditar?.foto_url ?? null
+      if (foto) {
+        const ext = foto.name.split('.').pop()
+        const path = `reportes/${perfil.id}/${form.fecha}_${Date.now()}.${ext}`
+        const { error: upErr } = await supabase.storage.from('evidencias').upload(path, foto, { upsert: true })
+        if (upErr) throw upErr
+        const { data } = supabase.storage.from('evidencias').getPublicUrl(path)
+        foto_url = data.publicUrl
+      }
 
-    let err
-    if (esEdicion) {
-      // Corrección: actualizar y volver a pendiente
-      ;({ error: err } = await supabase.from('reportes_trabajador').update({
-        titulo: form.titulo.trim(),
-        descripcion: form.descripcion.trim() || null,
-        fecha: form.fecha,
-        finca_id: form.finca_id || null,
-        foto_url,
-        estado: 'pendiente',
-        comentario_rechazo: null,
-        aprobado_por: null,
-      }).eq('id', reporteEditar.id))
-    } else {
-      ;({ error: err } = await supabase.from('reportes_trabajador').insert({
-        titulo: form.titulo.trim(),
-        descripcion: form.descripcion.trim() || null,
-        fecha: form.fecha,
-        finca_id: form.finca_id || null,
-        foto_url,
-        creado_por: perfil.id,
-      }))
-    }
+      if (esEdicion) {
+        // Corrección: actualizar y volver a pendiente.
+        // .select() nos dice cuántas filas cambiaron: si son 0, casi siempre es
+        // que RLS no permite al trabajador modificar su propio reporte rechazado.
+        const { data, error } = await supabase.from('reportes_trabajador').update({
+          titulo: form.titulo.trim(),
+          descripcion: form.descripcion.trim() || null,
+          fecha: form.fecha,
+          finca_id: form.finca_id || null,
+          foto_url,
+          estado: 'pendiente',
+          comentario_rechazo: null,
+          aprobado_por: null,
+        }).eq('id', reporteEditar.id).select('id')
+        if (error) throw error
+        if (!data || data.length === 0) {
+          throw new Error('No se pudo reenviar el reporte: no tienes permiso para modificarlo. Avísale al administrador para revisar los permisos (RLS) de reportes_trabajador.')
+        }
+      } else {
+        const { error } = await supabase.from('reportes_trabajador').insert({
+          titulo: form.titulo.trim(),
+          descripcion: form.descripcion.trim() || null,
+          fecha: form.fecha,
+          finca_id: form.finca_id || null,
+          foto_url,
+          creado_por: perfil.id,
+        })
+        if (error) throw error
+      }
 
-    setGuardando(false)
-    if (err) { setError(err.message); return }
-    onGuardado()
+      onGuardado()
+    } catch (err) {
+      console.error('Error al guardar reporte:', err)
+      setError(err.message || 'Ocurrió un error al guardar. Intenta de nuevo.')
+    } finally {
+      setGuardando(false)
+    }
   }
 
   return (
