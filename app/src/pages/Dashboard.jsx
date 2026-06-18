@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { fmtFecha } from '../lib/fecha'
-import { PawPrint, Milk, Warehouse, Wallet, Siren, AlertTriangle, Calendar, Clock, ChevronRight, TrendingUp, TrendingDown, X, BarChart3 } from '../components/icons'
+import { PawPrint, Milk, Warehouse, Siren, AlertTriangle, Calendar, Clock, ChevronRight, TrendingUp, TrendingDown, X, BarChart3 } from '../components/icons'
 
 function fechaISO(d) {
   const y = d.getFullYear()
@@ -18,7 +18,6 @@ const ORDEN_ALERTA = { red: 0, orange: 1, yellow: 2 }
 export default function Dashboard() {
   const { perfil } = useAuth()
   const [resumen, setResumen] = useState({ fincas: 0, animales: 0, enOrdeno: 0, litrosHoy: 0, litrosAyer: 0 })
-  const [finanzas, setFinanzas] = useState({ ingresos: 0, gastos: 0 })
   const [metaLitros, setMetaLitros] = useState(null)   // meta diaria de litros (viene del panel de Metas)
   const [alertas, setAlertas] = useState([])
   const [pendientes, setPendientes] = useState([])
@@ -33,7 +32,6 @@ export default function Dashboard() {
     async function cargar() {
       const hoy  = new Date().toISOString().split('T')[0]
       const ayer = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-      const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
 
       const [
         { count: fincas },
@@ -45,7 +43,6 @@ export default function Dashboard() {
         { data: tareasVencidas },
         { data: partosProximos },
         { data: insumosBajos },
-        { data: txMes },
         { data: metasLitros },
       ] = await Promise.all([
         supabase.from('fincas').select('*', { count: 'exact', head: true }).eq('activa', true),
@@ -61,15 +58,12 @@ export default function Dashboard() {
           .lte('fecha_probable_parto', new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
           .limit(5),
         supabase.from('inventario_insumos').select('nombre,stock_actual,stock_minimo'),
-        supabase.from('transacciones').select('tipo,valor').gte('fecha', inicioMes),
         supabase.from('metas').select('valor_objetivo,finca_id').eq('indicador', 'litros_dia').eq('activa', true),
       ])
 
       const stockBajo = insumosBajos?.filter(i => Number(i.stock_actual) <= Number(i.stock_minimo)) ?? []
       const litrosHoy  = ordenosHoy?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
       const litrosAyer = ordenosAyer?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
-      const ingMes = txMes?.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.valor), 0) ?? 0
-      const gasMes = txMes?.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.valor), 0) ?? 0
 
       // Meta diaria de litros tomada del panel de Metas:
       // si hay meta global (todas las fincas) se usa esa; si no, se suman las de cada finca.
@@ -81,7 +75,6 @@ export default function Dashboard() {
       setMetaLitros(metaDia)
 
       setResumen({ fincas: fincas ?? 0, animales: animales ?? 0, enOrdeno: enOrdeno ?? 0, litrosHoy, litrosAyer })
-      setFinanzas({ ingresos: ingMes, gastos: gasMes })
 
       // Pendientes — query directa (RLS permite propietario ver todo)
       const [
@@ -114,7 +107,6 @@ export default function Dashboard() {
   }, [])
 
   const pct = metaLitros ? Math.min((resumen.litrosHoy / metaLitros) * 100, 100) : 0
-  const balance = finanzas.ingresos - finanzas.gastos
   const diffAyer = resumen.litrosHoy - resumen.litrosAyer
 
   const alertasVisibles = alertas
@@ -291,39 +283,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Alertas amarillas (menos urgentes) — penúltimas, antes de Finanzas */}
+      {/* Alertas amarillas (menos urgentes) — al final del tablero */}
       {alertasAmarillas.length > 0 && (
         <div className="space-y-2">
           {alertasAmarillas.map(a => (
             <FilaAlerta key={a.key} a={a} onOcultar={ocultarAlerta} />
           ))}
         </div>
-      )}
-
-      {/* Balance del mes — siempre de último */}
-      {!cargando && (finanzas.ingresos > 0 || finanzas.gastos > 0) && (
-        <Link to="/financiero" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-gray-700 flex items-center gap-1.5"><Wallet size={18} className="text-verde-700" /> Finanzas este mes</span>
-            <span className="text-xs text-gray-400 flex items-center gap-0.5">Ver detalle <ChevronRight size={14} /></span>
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-green-50 rounded-xl py-2">
-              <div className="text-xs text-gray-400 mb-0.5">Ingresos</div>
-              <div className="text-sm font-bold text-verde-700">${finanzas.ingresos.toLocaleString('es-CO')}</div>
-            </div>
-            <div className="bg-red-50 rounded-xl py-2">
-              <div className="text-xs text-gray-400 mb-0.5">Gastos</div>
-              <div className="text-sm font-bold text-red-500">${finanzas.gastos.toLocaleString('es-CO')}</div>
-            </div>
-            <div className={`rounded-xl py-2 ${balance >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-              <div className="text-xs text-gray-400 mb-0.5">Balance</div>
-              <div className={`text-sm font-bold ${balance >= 0 ? 'text-verde-700' : 'text-red-500'}`}>
-                {balance >= 0 ? '+' : ''}${balance.toLocaleString('es-CO')}
-              </div>
-            </div>
-          </div>
-        </Link>
       )}
 
     </div>
