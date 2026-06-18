@@ -3,21 +3,31 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { fmtFecha } from '../lib/fecha'
-import { PawPrint, Milk, ListChecks, Warehouse, Wallet, Siren, AlertTriangle, Calendar, Clock, Pencil, ChevronRight, TrendingUp, TrendingDown, X } from '../components/icons'
+import { PawPrint, Milk, Warehouse, Wallet, Siren, AlertTriangle, Calendar, Clock, ChevronRight, TrendingUp, TrendingDown, X, BarChart3 } from '../components/icons'
 
-const META_DEFAULT = 10000
+function fechaISO(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
+// Prioridad de orden de alertas: rojas primero, amarillas al final.
+const ORDEN_ALERTA = { red: 0, orange: 1, yellow: 2 }
 
 export default function Dashboard() {
   const { perfil } = useAuth()
   const [resumen, setResumen] = useState({ fincas: 0, animales: 0, enOrdeno: 0, litrosHoy: 0, litrosAyer: 0 })
   const [finanzas, setFinanzas] = useState({ ingresos: 0, gastos: 0 })
+  const [metaLitros, setMetaLitros] = useState(null)   // meta diaria de litros (viene del panel de Metas)
   const [alertas, setAlertas] = useState([])
   const [pendientes, setPendientes] = useState([])
   const [aprobando, setAprobando] = useState(null)
   const [cargando, setCargando] = useState(true)
-  const [meta, setMeta] = useState(() => Number(localStorage.getItem('meta_litros') || META_DEFAULT))
-  const [editandoMeta, setEditandoMeta] = useState(false)
-  const [metaInput, setMetaInput] = useState('')
+  const [ocultas, setOcultas] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('alertas_ocultas') || '[]')) }
+    catch { return new Set() }
+  })
 
   useEffect(() => {
     async function cargar() {
@@ -36,6 +46,7 @@ export default function Dashboard() {
         { data: partosProximos },
         { data: insumosBajos },
         { data: txMes },
+        { data: metasLitros },
       ] = await Promise.all([
         supabase.from('fincas').select('*', { count: 'exact', head: true }).eq('activa', true),
         supabase.from('animales').select('*', { count: 'exact', head: true }).eq('activa', true),
@@ -51,6 +62,7 @@ export default function Dashboard() {
           .limit(5),
         supabase.from('inventario_insumos').select('nombre,stock_actual,stock_minimo'),
         supabase.from('transacciones').select('tipo,valor').gte('fecha', inicioMes),
+        supabase.from('metas').select('valor_objetivo,finca_id').eq('indicador', 'litros_dia').eq('activa', true),
       ])
 
       const stockBajo = insumosBajos?.filter(i => Number(i.stock_actual) <= Number(i.stock_minimo)) ?? []
@@ -58,6 +70,15 @@ export default function Dashboard() {
       const litrosAyer = ordenosAyer?.reduce((s, o) => s + Number(o.litros), 0) ?? 0
       const ingMes = txMes?.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.valor), 0) ?? 0
       const gasMes = txMes?.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.valor), 0) ?? 0
+
+      // Meta diaria de litros tomada del panel de Metas:
+      // si hay meta global (todas las fincas) se usa esa; si no, se suman las de cada finca.
+      const ml = metasLitros ?? []
+      const global = ml.find(m => m.finca_id == null)
+      const metaDia = global ? Number(global.valor_objetivo)
+        : ml.length ? ml.reduce((s, m) => s + Number(m.valor_objetivo), 0)
+        : null
+      setMetaLitros(metaDia)
 
       setResumen({ fincas: fincas ?? 0, animales: animales ?? 0, enOrdeno: enOrdeno ?? 0, litrosHoy, litrosAyer })
       setFinanzas({ ingresos: ingMes, gastos: gasMes })
@@ -82,19 +103,32 @@ export default function Dashboard() {
       ])
 
       const nuevasAlertas = []
-      retiros?.forEach(a => nuevasAlertas.push({ tipo: 'retiro', texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
-      tareasVencidas?.forEach(t => nuevasAlertas.push({ tipo: 'tarea', texto: `Actividad vencida: ${t.titulo}`, color: 'orange' }))
-      partosProximos?.forEach(p => nuevasAlertas.push({ tipo: 'parto', texto: `Parto próximo: ${p.animales?.identificacion ?? '?'} el ${fmtFecha(p.fecha_probable_parto)}`, color: 'yellow' }))
-      stockBajo?.forEach(i => nuevasAlertas.push({ tipo: 'stock', texto: `Stock bajo: ${i.nombre} (${i.stock_actual} unidades)`, color: 'orange' }))
+      retiros?.forEach(a => nuevasAlertas.push({ key: `retiro:${a.identificacion}`, tipo: 'retiro', texto: `${a.identificacion}${a.nombre ? ` (${a.nombre})` : ''} — retiro de leche vencido`, color: 'red' }))
+      tareasVencidas?.forEach(t => nuevasAlertas.push({ key: `tarea:${t.id}`, tipo: 'tarea', texto: `Actividad vencida: ${t.titulo}`, color: 'orange' }))
+      partosProximos?.forEach(p => nuevasAlertas.push({ key: `parto:${p.animales?.identificacion ?? '?'}:${p.fecha_probable_parto}`, tipo: 'parto', texto: `Parto próximo: ${p.animales?.identificacion ?? '?'} el ${fmtFecha(p.fecha_probable_parto)}`, color: 'yellow' }))
+      stockBajo?.forEach(i => nuevasAlertas.push({ key: `stock:${i.nombre}`, tipo: 'stock', texto: `Stock bajo: ${i.nombre} (${i.stock_actual} unidades)`, color: 'orange' }))
       setAlertas(nuevasAlertas)
       setCargando(false)
     }
     cargar()
   }, [])
 
-  const pct = Math.min((resumen.litrosHoy / meta) * 100, 100)
+  const pct = metaLitros ? Math.min((resumen.litrosHoy / metaLitros) * 100, 100) : 0
   const balance = finanzas.ingresos - finanzas.gastos
   const diffAyer = resumen.litrosHoy - resumen.litrosAyer
+
+  const alertasVisibles = alertas
+    .filter(a => !ocultas.has(a.key))
+    .sort((x, y) => (ORDEN_ALERTA[x.color] ?? 9) - (ORDEN_ALERTA[y.color] ?? 9))
+
+  function ocultarAlerta(key) {
+    setOcultas(prev => {
+      const next = new Set(prev)
+      next.add(key)
+      localStorage.setItem('alertas_ocultas', JSON.stringify([...next]))
+      return next
+    })
+  }
 
   async function aprobarTodo() {
     setAprobando('all')
@@ -127,29 +161,13 @@ export default function Dashboard() {
     setPendientes(p => p.filter(x => x.id !== item.id))
   }
 
-  function guardarMeta(e) {
-    e.preventDefault()
-    const nueva = Number(metaInput)
-    if (nueva > 0) { setMeta(nueva); localStorage.setItem('meta_litros', nueva) }
-    setEditandoMeta(false)
-  }
-
-  const modulos = [
-    { to: '/animales',     icon: PawPrint,        label: 'Animales',     desc: 'Hato, sanidad y reproducción' },
-    { to: '/actividades',  icon: ListChecks, label: 'Actividades',  desc: 'Pendientes y recurrentes' },
-    { to: '/ordenos',      icon: Milk,       label: 'Ordeños',      desc: 'Registro de producción' },
-  ]
-
   return (
     <div className="space-y-4 pt-1 pb-2">
 
-      {/* Hero */}
+      {/* Hero — producción de hoy vs meta (la meta se define en el panel de Metas) */}
       <div className="relative overflow-hidden rounded-3xl bg-verde-700 p-6 shadow-xl">
-        {/* Círculo decorativo de fondo */}
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
         <div className="absolute -bottom-12 -left-8 w-40 h-40 rounded-full bg-white/5" />
-
-        <p className="text-verde-200 text-sm mb-4">Hola {perfil?.nombre?.split(' ')[0]}</p>
 
         <div className="flex items-end justify-between mb-5">
           <div>
@@ -167,58 +185,58 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="text-right">
-            <div className={`text-xs font-bold px-3 py-1.5 rounded-full mb-2 inline-flex items-center gap-1.5 ${
-              pct >= 90 ? 'bg-green-400/30 text-green-200' :
-              pct >= 70 ? 'bg-yellow-400/30 text-yellow-200' :
-                          'bg-red-400/30 text-red-200'
-            }`}>
-              <span className={`inline-block w-2.5 h-2.5 rounded-full ${pct >= 90 ? 'bg-verde-600' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} />
-              {pct >= 90 ? 'En meta' : pct >= 70 ? 'Cerca' : 'Bajo'}
+          {metaLitros != null && (
+            <div className="text-right">
+              <div className={`text-xs font-bold px-3 py-1.5 rounded-full mb-2 inline-flex items-center gap-1.5 ${
+                pct >= 90 ? 'bg-green-400/30 text-green-200' :
+                pct >= 70 ? 'bg-yellow-400/30 text-yellow-200' :
+                            'bg-red-400/30 text-red-200'
+              }`}>
+                <span className={`inline-block w-2.5 h-2.5 rounded-full ${pct >= 90 ? 'bg-verde-600' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} />
+                {pct >= 90 ? 'En meta' : pct >= 70 ? 'Cerca' : 'Bajo'}
+              </div>
+              <p className="text-verde-400 text-xs">{Math.round(pct)}% de la meta</p>
             </div>
-            <p className="text-verde-400 text-xs">{Math.round(pct)}% de la meta</p>
-          </div>
+          )}
         </div>
 
-        {/* Barra de progreso */}
-        <div className="w-full bg-white/20 rounded-full h-3 mb-2">
-          <div
-            className={`h-3 rounded-full transition-all duration-700 ${
-              pct >= 90 ? 'bg-green-400' : pct >= 70 ? 'bg-yellow-400' : 'bg-red-400'
-            }`}
-            style={{ width: `${Math.max(pct, 2)}%` }}
-          />
-        </div>
+        {metaLitros != null && (
+          <div className="w-full bg-white/20 rounded-full h-3 mb-2">
+            <div
+              className={`h-3 rounded-full transition-all duration-700 ${
+                pct >= 90 ? 'bg-green-400' : pct >= 70 ? 'bg-yellow-400' : 'bg-red-400'
+              }`}
+              style={{ width: `${Math.max(pct, 2)}%` }}
+            />
+          </div>
+        )}
 
         <div className="flex justify-between items-center text-xs text-verde-400">
           <span>0 L</span>
-          {editandoMeta ? (
-            <form onSubmit={guardarMeta} className="flex items-center gap-2">
-              <input autoFocus type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)}
-                className="bg-white/20 text-white rounded-lg px-2 py-1 w-24 text-xs focus:outline-none focus:ring-1 focus:ring-white/40" />
-              <button type="submit" className="text-white font-bold text-xs bg-white/20 px-2 py-1 rounded-lg">OK</button>
-              <button type="button" onClick={() => setEditandoMeta(false)} className="text-verde-400 flex items-center"><X size={16} /></button>
-            </form>
-          ) : (
-            <button onClick={() => { setMetaInput(meta); setEditandoMeta(true) }}
-              className="text-verde-400 hover:text-white transition flex items-center gap-1">
-              Meta: {meta.toLocaleString()} L <Pencil size={12} />
-            </button>
-          )}
+          <Link to="/metas" className="text-verde-400 hover:text-white transition flex items-center gap-1">
+            {metaLitros != null ? `Meta: ${metaLitros.toLocaleString()} L` : 'Definir meta en Metas'} <ChevronRight size={12} />
+          </Link>
         </div>
       </div>
 
-      {/* Alertas */}
-      {alertas.length > 0 && (
+      {/* Histórico de producción de leche */}
+      <PanelHistoricoLeche />
+
+      {/* Alertas — amarillas al final; cada una se puede ocultar del tablero */}
+      {alertasVisibles.length > 0 && (
         <div className="space-y-2">
-          {alertas.map((a, i) => (
-            <div key={i} className={`rounded-2xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
+          {alertasVisibles.map(a => (
+            <div key={a.key} className={`rounded-2xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
               a.color === 'red'    ? 'bg-red-50 text-red-700 border border-red-100' :
               a.color === 'orange' ? 'bg-orange-50 text-orange-700 border border-orange-100' :
                                      'bg-yellow-50 text-yellow-700 border border-yellow-100'
             }`}>
               <span className="flex-shrink-0 mt-0.5">{a.color === 'red' ? <Siren size={16} className="text-red-600" /> : a.color === 'orange' ? <AlertTriangle size={16} className="text-amber-600" /> : <Calendar size={16} />}</span>
-              {a.texto}
+              <span className="flex-1">{a.texto}</span>
+              <button onClick={() => ocultarAlerta(a.key)} aria-label="Ocultar del tablero"
+                className="flex-shrink-0 opacity-40 hover:opacity-100 transition">
+                <X size={16} />
+              </button>
             </div>
           ))}
         </div>
@@ -268,7 +286,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: Warehouse, label: 'Fincas',    valor: resumen.fincas   },
-            { icon: PawPrint,       label: 'Animales',  valor: resumen.animales  },
+            { icon: PawPrint,  label: 'Animales',  valor: resumen.animales  },
             { icon: Milk,      label: 'En ordeño', valor: resumen.enOrdeno },
           ].map(({ icon: Icon, label, valor }) => (
             <div key={label} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
@@ -306,24 +324,112 @@ export default function Dashboard() {
         </Link>
       )}
 
-      {/* Módulos */}
-      <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Módulos</p>
-        <div className="space-y-2">
-          {modulos.map(({ to, icon: Icon, label, desc }) => (
-            <Link key={to} to={to}
-              className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-4 shadow-sm border border-gray-100 active:bg-gray-50 transition">
-              <span className="w-9 flex justify-center"><Icon size={24} className="text-verde-700" /></span>
-              <div className="flex-1">
-                <div className="text-sm font-semibold text-gray-800">{label}</div>
-                <div className="text-xs text-gray-400">{desc}</div>
-              </div>
-              <ChevronRight size={20} className="text-gray-300" />
-            </Link>
+    </div>
+  )
+}
+
+// ─── Panel histórico de producción de leche ─────────────────────────────────
+const RANGOS = [
+  { key: '7',   label: '7 días',  dias: 7  },
+  { key: '30',  label: '30 días', dias: 30 },
+  { key: 'mes', label: 'Este mes' },
+]
+
+function PanelHistoricoLeche() {
+  const [rango, setRango] = useState('7')
+  const [serie, setSerie] = useState([])
+  const [cargando, setCargando] = useState(true)
+
+  useEffect(() => {
+    async function cargar() {
+      setCargando(true)
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
+      let desde
+      if (rango === 'mes') {
+        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+      } else {
+        const dias = RANGOS.find(r => r.key === rango)?.dias ?? 7
+        desde = new Date(hoy.getTime() - (dias - 1) * 86400000)
+      }
+
+      const { data } = await supabase.from('ordenos')
+        .select('fecha,litros')
+        .gte('fecha', fechaISO(desde))
+        .lte('fecha', fechaISO(hoy))
+
+      const porFecha = {}
+      ;(data ?? []).forEach(o => { porFecha[o.fecha] = (porFecha[o.fecha] || 0) + Number(o.litros) })
+
+      const out = []
+      for (let d = new Date(desde); d <= hoy; d = new Date(d.getTime() + 86400000)) {
+        const k = fechaISO(d)
+        out.push({ fecha: k, litros: porFecha[k] || 0 })
+      }
+      setSerie(out)
+      setCargando(false)
+    }
+    cargar()
+  }, [rango])
+
+  const total = serie.reduce((s, d) => s + d.litros, 0)
+  const prom = serie.length ? total / serie.length : 0
+  const max = Math.max(1, ...serie.map(d => d.litros))
+  const mejor = serie.reduce((m, d) => (d.litros > (m?.litros ?? -1) ? d : m), null)
+
+  return (
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+          <BarChart3 size={18} className="text-verde-700" /> Histórico de producción
+        </span>
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+          {RANGOS.map(r => (
+            <button key={r.key} onClick={() => setRango(r.key)}
+              className={`text-xs px-2.5 py-1 rounded-md font-medium transition ${
+                rango === r.key ? 'bg-white text-verde-700 shadow-sm' : 'text-gray-400'
+              }`}>
+              {r.label}
+            </button>
           ))}
         </div>
       </div>
 
+      {cargando ? (
+        <p className="text-gray-400 text-sm py-6 text-center">Cargando...</p>
+      ) : total === 0 ? (
+        <p className="text-gray-400 text-sm py-6 text-center">Sin ordeños registrados en este periodo</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+            <div className="bg-gray-50 rounded-xl py-2">
+              <div className="text-xs text-gray-400 mb-0.5">Total</div>
+              <div className="text-sm font-bold text-gray-800">{Math.round(total).toLocaleString('es-CO')} L</div>
+            </div>
+            <div className="bg-gray-50 rounded-xl py-2">
+              <div className="text-xs text-gray-400 mb-0.5">Promedio/día</div>
+              <div className="text-sm font-bold text-gray-800">{Math.round(prom).toLocaleString('es-CO')} L</div>
+            </div>
+            <div className="bg-gray-50 rounded-xl py-2">
+              <div className="text-xs text-gray-400 mb-0.5">Mejor día</div>
+              <div className="text-sm font-bold text-gray-800">{Math.round(mejor?.litros ?? 0).toLocaleString('es-CO')} L</div>
+            </div>
+          </div>
+
+          {/* Mini gráfico de barras */}
+          <div className="flex items-end gap-px h-24">
+            {serie.map(d => (
+              <div key={d.fecha} className="flex-1 flex items-end h-full" title={`${fmtFecha(d.fecha)}: ${Math.round(d.litros)} L`}>
+                <div className="w-full bg-verde-500 rounded-t transition-all"
+                  style={{ height: `${Math.max((d.litros / max) * 100, d.litros > 0 ? 4 : 0)}%` }} />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-[10px] text-gray-400 mt-1.5">
+            <span>{fmtFecha(serie[0]?.fecha)}</span>
+            <span>{fmtFecha(serie[serie.length - 1]?.fecha)}</span>
+          </div>
+        </>
+      )}
     </div>
   )
 }
