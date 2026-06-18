@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtFecha } from '../lib/fecha'
+import { Milk, Syringe, Microscope, Zap, ClipboardCheck, CheckCircle2, XCircle } from '../components/icons'
 
 const FILTROS = ['Todos', 'Aprobados', 'Rechazados']
 
 const TABLA_META = {
-  ordenos:              { label: 'Ordeño',       icon: '🥛' },
-  eventos_sanitarios:   { label: 'Sanidad',       icon: '💉' },
-  eventos_reproductivos:{ label: 'Reproducción',  icon: '🔬' },
-  reportes_trabajador:  { label: 'Reporte',       icon: '⚡' },
+  ordenos:              { label: 'Ordeño',       icon: Milk },
+  eventos_sanitarios:   { label: 'Sanidad',       icon: Syringe },
+  eventos_reproductivos:{ label: 'Reproducción',  icon: Microscope },
+  reportes_trabajador:  { label: 'Reporte',       icon: Zap },
 }
 
 export default function HistorialAprobaciones() {
@@ -97,22 +98,25 @@ export default function HistorialAprobaciones() {
       ) : (
         <div className="space-y-2">
           {lista.map(item => {
-            const meta = TABLA_META[item._tabla] ?? { label: item._tabla, icon: '📄' }
+            const meta = TABLA_META[item._tabla] ?? { label: item._tabla, icon: ClipboardCheck }
+            const MetaIcon = meta.icon
             return (
               <div key={`${item._tabla}-${item.id}`}
                 className="bg-white border border-gray-200 rounded-2xl px-4 py-3 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-xl flex-shrink-0">{meta.icon}</span>
+                    <MetaIcon size={20} className="flex-shrink-0 text-gray-600" />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-800 truncate">{item._desc}</p>
                       <p className="text-xs text-gray-400">{meta.label} · {fmtFecha(item.fecha)}</p>
                     </div>
                   </div>
-                  <span className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-full ${
+                  <span className={`flex-shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${
                     item.estado === 'aprobado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                   }`}>
-                    {item.estado === 'aprobado' ? '✓ Aprobado' : '✕ Rechazado'}
+                    {item.estado === 'aprobado'
+                      ? <><CheckCircle2 size={14} /> Aprobado</>
+                      : <><XCircle size={14} /> Rechazado</>}
                   </span>
                 </div>
 

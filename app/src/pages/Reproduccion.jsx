@@ -2,13 +2,22 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { Syringe, Microscope, PawPrint, AlertTriangle, ClipboardCheck, Plus } from '../components/icons'
+import { Ban } from 'lucide-react'
 
 const TIPOS = ['celo','servicio','diagnostico_prenez','parto','aborto','secado']
 const METODOS = ['inseminacion','monta','transferencia_embrion']
 
-const TIPO_ICON = {
-  celo: '🔴', servicio: '💉', diagnostico_prenez: '🔬',
-  parto: '🐄', aborto: '⚠️', secado: '🚫'
+// Ícono por tipo de evento. "celo" se muestra como punto de color (semáforo).
+function IconoTipo({ tipo, size = 20 }) {
+  if (tipo === 'celo') return <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500" />
+  const Map = {
+    servicio: Syringe, diagnostico_prenez: Microscope,
+    parto: PawPrint, aborto: AlertTriangle, secado: Ban,
+  }
+  const Icon = Map[tipo] ?? ClipboardCheck
+  const color = tipo === 'aborto' ? 'text-amber-600' : 'text-verde-700'
+  return <Icon size={size} className={color} />
 }
 
 export default function Reproduccion() {
@@ -97,15 +106,15 @@ export default function Reproduccion() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Reproducción</h2>
         <button onClick={() => setModalAbierto(true)}
-          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-          + Registrar
+          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition inline-flex items-center gap-1">
+          <Plus size={16} /> Registrar
         </button>
       </div>
 
       {/* Alerta próximos partos */}
       {proximosPartos.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
-          <p className="text-sm font-semibold text-yellow-800">🐄 Partos próximos (30 días)</p>
+          <p className="text-sm font-semibold text-yellow-800 inline-flex items-center gap-1.5"><PawPrint size={16} /> Partos próximos (30 días)</p>
           {proximosPartos.map(e => (
             <p key={e.id} className="text-xs text-yellow-700 mt-1">
               {e.animales?.identificacion} — {fmtFecha(e.fecha_probable_parto)}
@@ -130,7 +139,7 @@ export default function Reproduccion() {
         <div className="space-y-2">
           {eventos.map(ev => (
             <div key={ev.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-start gap-3">
-              <span className="text-xl mt-0.5">{TIPO_ICON[ev.tipo] ?? '📋'}</span>
+              <span className="mt-0.5 flex items-center"><IconoTipo tipo={ev.tipo} /></span>
               <div className="flex-1">
                 <div className="font-semibold text-sm text-gray-800">
                   {ev.animales ? `${ev.animales.identificacion}${ev.animales.nombre ? ` · ${ev.animales.nombre}` : ''}` : ev.fincas?.nombre}
@@ -139,7 +148,7 @@ export default function Reproduccion() {
                 {ev.metodo && <div className="text-xs text-gray-500">{ev.metodo}{ev.toro_o_semen ? ` · ${ev.toro_o_semen}` : ''}</div>}
                 {ev.resultado && <div className="text-xs text-gray-600 mt-0.5">Resultado: {ev.resultado}</div>}
                 {ev.fecha_probable_parto && (
-                  <div className="text-xs text-yellow-600 mt-0.5">🐄 Parto probable: {fmtFecha(ev.fecha_probable_parto)}</div>
+                  <div className="text-xs text-yellow-600 mt-0.5 inline-flex items-center gap-1"><PawPrint size={14} /> Parto probable: {fmtFecha(ev.fecha_probable_parto)}</div>
                 )}
               </div>
             </div>

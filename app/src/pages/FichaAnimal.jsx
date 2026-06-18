@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fmtFecha } from '../lib/fecha'
+import { Milk, Syringe, PawPrint } from '../components/icons'
+import { Camera } from 'lucide-react'
 
 const TABS = ['Resumen', 'Fotos', 'Ordeños', 'Sanidad', 'Reproducción', 'Movimientos']
 
@@ -136,8 +138,8 @@ export default function FichaAnimal() {
             <div className="relative cursor-pointer" onClick={() => setTab('Fotos')}>
               <img src={fotos[fotos.length - 1].url} alt="foto animal"
                 className="w-full h-48 object-cover rounded-xl border border-gray-200" />
-              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">
-                📷 {fotos.length} foto{fotos.length > 1 ? 's' : ''} · Ver todas
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1">
+                <Camera size={14} /> {fotos.length} foto{fotos.length > 1 ? 's' : ''} · Ver todas
               </div>
             </div>
           )}
@@ -174,7 +176,7 @@ export default function FichaAnimal() {
             </div>
           )}
           <label className="block border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-verde-400 transition">
-            <div className="text-2xl mb-1">📷</div>
+            <Camera size={24} className="mx-auto mb-1 text-gray-400" />
             <div className="text-sm text-gray-500">{subiendo ? 'Subiendo...' : '+ Agregar foto'}</div>
             <input type="file" accept="image/*" multiple className="hidden"
               onChange={e => Array.from(e.target.files).forEach(f => subirFoto(f))} disabled={subiendo} />
@@ -196,7 +198,7 @@ export default function FichaAnimal() {
             ? <p className="text-gray-400 text-sm text-center py-6">Sin registros de ordeño</p>
             : ordenos.map(o => (
               <div key={o.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <span className="text-xl">🥛</span>
+                <Milk size={20} className="text-verde-700" />
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-gray-800">{Number(o.litros).toFixed(1)} L</div>
                   <div className="text-xs text-gray-500">{fmtFecha(o.fecha)} · Ordeño #{o.numero_ordeno}</div>
@@ -214,7 +216,7 @@ export default function FichaAnimal() {
             : sanitarios.map(s => (
               <div key={s.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">💉</span>
+                  <Syringe size={18} className="text-verde-700" />
                   <div>
                     <div className="text-sm font-semibold text-gray-800">{s.tipo} · {fmtFecha(s.fecha)}</div>
                     {s.diagnostico && <div className="text-xs text-gray-600">{s.diagnostico}</div>}
@@ -239,7 +241,7 @@ export default function FichaAnimal() {
                 <div className="text-sm font-semibold text-gray-800">{r.tipo.replace('_',' ')} · {fmtFecha(r.fecha)}</div>
                 {r.metodo && <div className="text-xs text-gray-500">{r.metodo}{r.toro_o_semen ? ` · ${r.toro_o_semen}` : ''}</div>}
                 {r.resultado && <div className="text-xs text-gray-600">Resultado: {r.resultado}</div>}
-                {r.fecha_probable_parto && <div className="text-xs text-yellow-600">🐄 Parto probable: {fmtFecha(r.fecha_probable_parto)}</div>}
+                {r.fecha_probable_parto && <div className="text-xs text-yellow-600 flex items-center gap-1"><PawPrint size={14} /> Parto probable: {fmtFecha(r.fecha_probable_parto)}</div>}
                 {r.descripcion && <div className="text-xs text-gray-500 mt-0.5">{r.descripcion}</div>}
               </div>
             ))

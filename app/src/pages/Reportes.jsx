@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { Milk, ListChecks, Syringe, Wallet, Download } from '../components/icons'
 
 const PERIODOS = [
   { label: 'Esta semana',  dias: 7  },
@@ -104,7 +105,7 @@ export default function Reportes() {
       ) : datos && (
         <>
           {/* Producción de leche */}
-          <Seccion titulo="🥛 Producción de leche">
+          <Seccion icon={Milk} titulo="Producción de leche">
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Total" valor={`${datos.totalLitros.toFixed(0)} L`} />
               <Stat label="Promedio diario" valor={`${datos.promDiario.toFixed(1)} L`} />
@@ -151,7 +152,7 @@ export default function Reportes() {
           </Seccion>
 
           {/* Tareas */}
-          <Seccion titulo="✅ Actividades">
+          <Seccion icon={ListChecks} titulo="Actividades">
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Total creadas" valor={datos.totalTareas} />
               <Stat label="Completadas" valor={datos.tareasCompletas} color="green" />
@@ -161,7 +162,7 @@ export default function Reportes() {
           </Seccion>
 
           {/* Sanidad y reproducción */}
-          <Seccion titulo="💉 Sanidad y reproducción">
+          <Seccion icon={Syringe} titulo="Sanidad y reproducción">
             <div className="grid grid-cols-3 gap-3">
               <Stat label="Eventos sanidad" valor={datos.sanitarios} />
               <Stat label="Servicios" valor={datos.servicios} />
@@ -171,7 +172,7 @@ export default function Reportes() {
 
           {/* Movimientos económicos */}
           {(datos.ventas > 0 || datos.compras > 0) && (
-            <Seccion titulo="💰 Movimientos económicos">
+            <Seccion icon={Wallet} titulo="Movimientos económicos">
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Ventas" valor={`$${datos.ventas.toLocaleString('es-CO')}`} color="green" />
                 <Stat label="Compras" valor={`$${datos.compras.toLocaleString('es-CO')}`} color="red" />
@@ -181,8 +182,8 @@ export default function Reportes() {
 
           {/* Botón exportar */}
           <button onClick={() => exportarCSV(datos)}
-            className="w-full border border-verde-600 text-verde-700 font-semibold py-3 rounded-xl hover:bg-verde-50 transition text-sm">
-            📥 Exportar reporte CSV
+            className="w-full border border-verde-600 text-verde-700 font-semibold py-3 rounded-xl hover:bg-verde-50 transition text-sm flex items-center justify-center gap-2">
+            <Download size={18} /> Exportar reporte CSV
           </button>
         </>
       )}
@@ -217,10 +218,12 @@ function exportarCSV(datos) {
   URL.revokeObjectURL(url)
 }
 
-function Seccion({ titulo, children }) {
+function Seccion({ icon: Icon, titulo, children }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-      <h3 className="font-semibold text-gray-800 text-sm">{titulo}</h3>
+      <h3 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+        {Icon && <Icon size={18} className="text-verde-700" />}{titulo}
+      </h3>
       {children}
     </div>
   )

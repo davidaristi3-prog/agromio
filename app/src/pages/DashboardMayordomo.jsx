@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { fmtFecha } from '../lib/fecha'
+import { PawPrint, Milk, ListChecks, Package, Warehouse, Siren, AlertTriangle, Clock, Check, X, ChevronRight } from '../components/icons'
 
 export default function DashboardMayordomo() {
   const { perfil } = useAuth()
@@ -89,11 +90,11 @@ export default function DashboardMayordomo() {
   }
 
   const modulos = [
-    { to: '/animales',    icon: '🐄', label: 'Animales',    desc: 'Hato, sanidad y reproducción' },
-    { to: '/actividades', icon: '✅', label: 'Actividades', desc: 'Gestionar actividades' },
-    { to: '/ordenos',     icon: '🥛', label: 'Ordeños',     desc: 'Registro de producción' },
-    { to: '/inventario',  icon: '📦', label: 'Inventario',  desc: 'Insumos y stock' },
-    { to: '/fincas',      icon: '🏡', label: 'Fincas',      desc: 'Fincas y lotes' },
+    { to: '/animales',    icon: PawPrint,        label: 'Animales',    desc: 'Hato, sanidad y reproducción' },
+    { to: '/actividades', icon: ListChecks, label: 'Actividades', desc: 'Gestionar actividades' },
+    { to: '/ordenos',     icon: Milk,       label: 'Ordeños',     desc: 'Registro de producción' },
+    { to: '/inventario',  icon: Package,    label: 'Inventario',  desc: 'Insumos y stock' },
+    { to: '/fincas',      icon: Warehouse,  label: 'Fincas',      desc: 'Fincas y lotes' },
   ]
 
   return (
@@ -103,7 +104,7 @@ export default function DashboardMayordomo() {
       <div className="relative overflow-hidden rounded-3xl bg-verde-700 p-6 shadow-xl">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
         <div className="absolute -bottom-12 -left-8 w-40 h-40 rounded-full bg-white/5" />
-        <p className="text-verde-200 text-sm mb-1">Hola {perfil?.nombre?.split(' ')[0]} 👋</p>
+        <p className="text-verde-200 text-sm mb-1">Hola {perfil?.nombre?.split(' ')[0]}</p>
         <p className="text-verde-300 text-xs uppercase tracking-widest mb-1">Producción hoy — tu finca</p>
         <div className="flex items-end gap-2 mb-1">
           <span className="text-7xl font-black text-white leading-none">
@@ -125,7 +126,7 @@ export default function DashboardMayordomo() {
             <div key={i} className={`rounded-2xl px-4 py-3 text-sm font-medium flex items-start gap-2 ${
               a.color === 'red' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-orange-50 text-orange-700 border border-orange-100'
             }`}>
-              <span>{a.color === 'red' ? '🚨' : '⚠️'}</span>
+              <span className="flex-shrink-0 mt-0.5">{a.color === 'red' ? <Siren size={16} className="text-red-600" /> : <AlertTriangle size={16} className="text-amber-600" />}</span>
               {a.texto}
             </div>
           ))}
@@ -148,7 +149,7 @@ export default function DashboardMayordomo() {
             {pendientes.map(item => (
               <div key={item.id} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-yellow-200">
                 <div className="flex items-start gap-2 mb-3">
-                  <span className="text-lg">⏳</span>
+                  <Clock size={20} className="text-amber-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800">{item._desc}</p>
                     <p className="text-xs text-gray-400">
@@ -160,14 +161,14 @@ export default function DashboardMayordomo() {
                   <button
                     disabled={aprobando === item.id}
                     onClick={() => aprobar(item)}
-                    className="flex-1 bg-verde-600 text-white text-sm font-semibold py-2 rounded-xl disabled:opacity-50">
-                    ✓ Aprobar
+                    className="flex-1 bg-verde-600 text-white text-sm font-semibold py-2 rounded-xl disabled:opacity-50 flex items-center justify-center gap-1.5">
+                    <Check size={16} /> Aprobar
                   </button>
                   <button
                     disabled={aprobando === item.id}
                     onClick={() => rechazar(item)}
-                    className="flex-1 border border-red-200 text-red-500 text-sm font-semibold py-2 rounded-xl disabled:opacity-50">
-                    ✕ Rechazar
+                    className="flex-1 border border-red-200 text-red-500 text-sm font-semibold py-2 rounded-xl disabled:opacity-50 flex items-center justify-center gap-1.5">
+                    <X size={16} /> Rechazar
                   </button>
                 </div>
               </div>
@@ -180,12 +181,12 @@ export default function DashboardMayordomo() {
       {!cargando && datos && (
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-            <div className="text-3xl mb-1">🐄</div>
+            <div className="flex justify-center mb-1"><PawPrint size={28} className="text-verde-700" /></div>
             <div className="text-2xl font-black text-gray-800">{datos.animales}</div>
             <div className="text-xs text-gray-400 mt-0.5">Animales</div>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-            <div className="text-3xl mb-1">⏳</div>
+            <div className="flex justify-center mb-1"><Clock size={28} className="text-verde-700" /></div>
             <div className="text-2xl font-black text-gray-800">{pendientes.length}</div>
             <div className="text-xs text-gray-400 mt-0.5">Por aprobar</div>
           </div>
@@ -196,15 +197,15 @@ export default function DashboardMayordomo() {
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Módulos</p>
         <div className="space-y-2">
-          {modulos.map(({ to, icon, label, desc }) => (
+          {modulos.map(({ to, icon: Icon, label, desc }) => (
             <Link key={to} to={to}
               className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-4 shadow-sm border border-gray-100 active:bg-gray-50 transition">
-              <span className="text-2xl w-9 text-center">{icon}</span>
+              <span className="w-9 flex justify-center"><Icon size={24} className="text-verde-700" /></span>
               <div className="flex-1">
                 <div className="text-sm font-semibold text-gray-800">{label}</div>
                 <div className="text-xs text-gray-400">{desc}</div>
               </div>
-              <span className="text-gray-300 text-xl">›</span>
+              <ChevronRight size={20} className="text-gray-300" />
             </Link>
           ))}
         </div>

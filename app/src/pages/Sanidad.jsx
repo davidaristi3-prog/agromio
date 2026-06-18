@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { Syringe } from '../components/icons'
 
 const TIPOS = ['tratamiento','vacuna','diagnostico','desparasitacion','otro']
 
@@ -82,7 +83,7 @@ export default function Sanidad() {
         <div className="space-y-2">
           {eventos.map(ev => (
             <div key={ev.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-start gap-3">
-              <span className="text-xl mt-0.5">💉</span>
+              <Syringe size={20} className="text-verde-700 mt-0.5" />
               <div className="flex-1">
                 <div className="font-semibold text-sm text-gray-800">
                   {ev.animales ? `${ev.animales.identificacion}${ev.animales.nombre ? ` · ${ev.animales.nombre}` : ''}` : ev.fincas?.nombre}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { Warehouse, ChevronDown } from '../components/icons'
 
 export default function Fincas() {
   const { perfil } = useAuth()
@@ -89,7 +90,7 @@ export default function Fincas() {
                   fincaSeleccionada?.id === f.id ? 'border-verde-400 shadow-sm' : 'border-gray-200'
                 }`}>
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">🏡</span>
+                  <Warehouse size={24} className="text-verde-700" />
                   <div className="flex-1">
                     <div className="font-semibold text-gray-800">{f.nombre}</div>
                     <div className="text-xs text-gray-500">
@@ -100,7 +101,7 @@ export default function Fincas() {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${f.activa ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                       {f.activa ? 'Activa' : 'Inactiva'}
                     </span>
-                    <span className="text-gray-400 text-lg">{fincaSeleccionada?.id === f.id ? '▲' : '▼'}</span>
+                    <ChevronDown size={18} className={`text-gray-400 transition-transform ${fincaSeleccionada?.id === f.id ? 'rotate-180' : ''}`} />
                   </div>
                 </div>
               </div>

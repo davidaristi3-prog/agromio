@@ -1,29 +1,30 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { Target, Map, Package, Warehouse, Users, Wallet, BarChart3, User, ChevronRight } from '../components/icons'
 
 const MODULOS_PROPIETARIO = [
-  { to: '/metas',      icon: '🎯', label: 'Metas',       desc: 'Objetivos y avance con semáforo' },
-  { to: '/potreros',   icon: '🗺️', label: 'Potreros',    desc: 'Mapa satelital, dibujar cercas y ubicación' },
-  { to: '/inventario', icon: '📦', label: 'Inventario',  desc: 'Medicamentos, concentrado, minerales' },
-  { to: '/fincas',     icon: '🏡', label: 'Fincas',      desc: 'Gestión de fincas y lotes/potreros' },
-  { to: '/equipo',     icon: '👥', label: 'Equipo',      desc: 'Mayordomos, trabajadores y asignaciones' },
-  { to: '/financiero', icon: '💰', label: 'Financiero',  desc: 'Ingresos, gastos y costo por litro' },
-  { to: '/reportes',   icon: '📊', label: 'Reportes',    desc: 'Producción, actividades y estadísticas' },
-  { to: '/perfil',     icon: '👤', label: 'Mi perfil',   desc: 'Información personal y contraseña' },
+  { to: '/metas',      icon: Target,    label: 'Metas',       desc: 'Objetivos y avance con semáforo' },
+  { to: '/potreros',   icon: Map,       label: 'Potreros',    desc: 'Mapa satelital, dibujar cercas y ubicación' },
+  { to: '/inventario', icon: Package,   label: 'Inventario',  desc: 'Medicamentos, concentrado, minerales' },
+  { to: '/fincas',     icon: Warehouse, label: 'Fincas',      desc: 'Gestión de fincas y lotes/potreros' },
+  { to: '/equipo',     icon: Users,     label: 'Equipo',      desc: 'Mayordomos, trabajadores y asignaciones' },
+  { to: '/financiero', icon: Wallet,    label: 'Financiero',  desc: 'Ingresos, gastos y costo por litro' },
+  { to: '/reportes',   icon: BarChart3, label: 'Reportes',    desc: 'Producción, actividades y estadísticas' },
+  { to: '/perfil',     icon: User,      label: 'Mi perfil',   desc: 'Información personal y contraseña' },
 ]
 
 const MODULOS_MAYORDOMO = [
-  { to: '/metas',      icon: '🎯', label: 'Metas',      desc: 'Objetivos y avance con semáforo' },
-  { to: '/potreros',   icon: '🗺️', label: 'Potreros',   desc: 'Mapa satelital, dibujar cercas y ubicación' },
-  { to: '/inventario', icon: '📦', label: 'Inventario', desc: 'Medicamentos, concentrado, minerales' },
-  { to: '/fincas',     icon: '🏡', label: 'Fincas',     desc: 'Gestión de fincas y lotes/potreros' },
-  { to: '/perfil',     icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
+  { to: '/metas',      icon: Target,    label: 'Metas',      desc: 'Objetivos y avance con semáforo' },
+  { to: '/potreros',   icon: Map,       label: 'Potreros',   desc: 'Mapa satelital, dibujar cercas y ubicación' },
+  { to: '/inventario', icon: Package,   label: 'Inventario', desc: 'Medicamentos, concentrado, minerales' },
+  { to: '/fincas',     icon: Warehouse, label: 'Fincas',     desc: 'Gestión de fincas y lotes/potreros' },
+  { to: '/perfil',     icon: User,      label: 'Mi perfil',  desc: 'Información personal y contraseña' },
 ]
 
 const MODULOS_TRABAJADOR = [
-  { to: '/potreros', icon: '🗺️', label: 'Potreros',   desc: '¿En qué potrero estás? Mapa con tu ubicación' },
-  { to: '/fincas',   icon: '🏡', label: 'Fincas',     desc: 'Ver fincas y lotes' },
-  { to: '/perfil',   icon: '👤', label: 'Mi perfil',  desc: 'Información personal y contraseña' },
+  { to: '/potreros', icon: Map,       label: 'Potreros',   desc: '¿En qué potrero estás? Mapa con tu ubicación' },
+  { to: '/fincas',   icon: Warehouse, label: 'Fincas',     desc: 'Ver fincas y lotes' },
+  { to: '/perfil',   icon: User,      label: 'Mi perfil',  desc: 'Información personal y contraseña' },
 ]
 
 export default function Mas() {
@@ -38,15 +39,15 @@ export default function Mas() {
     <div className="space-y-4 pt-2">
       <h2 className="text-xl font-bold text-gray-800">Más módulos</h2>
       <div className="space-y-2">
-        {modulos.map(({ to, icon, label, desc }) => (
+        {modulos.map(({ to, icon: Icon, label, desc }) => (
           <Link key={to} to={to}
             className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-4 hover:shadow transition">
-            <span className="text-3xl">{icon}</span>
+            <Icon size={26} className="text-verde-700 flex-shrink-0" />
             <div>
               <div className="font-semibold text-gray-800 text-sm">{label}</div>
               <div className="text-xs text-gray-500">{desc}</div>
             </div>
-            <span className="ml-auto text-gray-300 text-lg">›</span>
+            <ChevronRight size={20} className="ml-auto text-gray-300" />
           </Link>
         ))}
       </div>

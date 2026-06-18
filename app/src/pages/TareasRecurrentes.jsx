@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { ListChecks, RefreshCw, Zap, Pencil, Camera, Mic, Check, PartyPopper, Plus } from '../components/icons'
 
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
@@ -41,7 +42,7 @@ async function notificarCompletacion(tarea, trabajador) {
       await supabase.functions.invoke('notificar-tarea', {
         body: {
           asignado_a: uid,
-          titulo: '✅ Actividad completada',
+          titulo: 'Actividad completada',
           descripcion: `${trabajador.nombre} completó: ${tarea.titulo}`,
         },
       })
@@ -67,8 +68,8 @@ export default function TareasRecurrentes() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Actividades recurrentes</h2>
         <button onClick={nuevaActividad}
-          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-          + Nueva
+          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition inline-flex items-center gap-1">
+          <Plus size={16} /> Nueva
         </button>
       </div>
       <div className="flex bg-gray-100 rounded-xl p-1">
@@ -161,7 +162,7 @@ function VistaTrabajador({ perfil }) {
 
       {cargando ? <p className="text-gray-400 text-sm">Cargando...</p> : tareas.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-4xl mb-3">📋</p>
+          <ListChecks size={40} className="mx-auto mb-3 text-gray-300" />
           <p className="text-gray-400 text-sm">No tienes actividades asignadas</p>
         </div>
       ) : (
@@ -171,7 +172,7 @@ function VistaTrabajador({ perfil }) {
             <div className="space-y-2">
               {hechasHoy.length === tareasHoy.length && (
                 <div className="bg-verde-50 border border-verde-200 rounded-2xl p-5 text-center">
-                  <p className="text-4xl mb-2">🎉</p>
+                  <PartyPopper size={36} className="mx-auto mb-2 text-verde-600" />
                   <p className="text-verde-800 font-bold text-sm">¡Todas las actividades de hoy completadas!</p>
                 </div>
               )}
@@ -192,7 +193,7 @@ function VistaTrabajador({ perfil }) {
                 return (
                   <div key={t.id} className="bg-verde-50 border border-verde-200 rounded-2xl px-4 py-4 flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-verde-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">✓</span>
+                      <Check size={14} className="text-white" strokeWidth={3} />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-verde-800 line-through">{t.titulo}</p>
@@ -220,7 +221,7 @@ function VistaTrabajador({ perfil }) {
                 return comp ? (
                   <div key={t.id} className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-4 flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">✓</span>
+                      <Check size={14} className="text-white" strokeWidth={3} />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-blue-800 line-through">{t.titulo}</p>
@@ -265,7 +266,7 @@ function VistaTrabajador({ perfil }) {
                 return (
                   <div key={r.id} className="bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-sm">
                     <div className="flex items-start gap-2">
-                      <span className="text-lg mt-0.5">⚡</span>
+                      <Zap size={18} className="mt-0.5 flex-shrink-0 text-amber-600" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-800">{r.titulo}</p>
                         {r.descripcion && <p className="text-xs text-gray-500 mt-0.5">{r.descripcion}</p>}
@@ -285,8 +286,8 @@ function VistaTrabajador({ perfil }) {
                           </div>
                         )}
                         <button onClick={() => setModalReporte(r)}
-                          className="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg font-semibold">
-                          ✏️ Corregir y reenviar
+                          className="inline-flex items-center gap-1 text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg font-semibold">
+                          <Pencil size={14} /> Corregir y reenviar
                         </button>
                       </div>
                     )}
@@ -299,7 +300,7 @@ function VistaTrabajador({ perfil }) {
       {/* Botón flotante reportar */}
       <button onClick={() => setModalReporte(true)}
         className="fixed bottom-24 right-4 bg-orange-500 text-white rounded-full shadow-lg flex items-center gap-2 px-4 py-3 text-sm font-bold z-40 active:bg-orange-600 transition">
-        <span className="text-lg leading-none">⚡</span> Reportar actividad
+        <Zap size={18} /> Reportar actividad
       </button>
 
       {modalTarea && (
@@ -388,7 +389,7 @@ function ModalCompletar({ tarea, perfil, targetFecha, onClose, onCompletada }) {
             </div>
           ) : (
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-28 cursor-pointer bg-gray-50 active:bg-gray-100">
-              <span className="text-2xl mb-1">📷</span>
+              <Camera size={28} className="mb-1 text-gray-400" />
               <span className="text-sm text-gray-500">Tomar foto o elegir del carrete</span>
               <input type="file" accept="image/*" onChange={onFoto} className="hidden" />
             </label>
@@ -400,13 +401,13 @@ function ModalCompletar({ tarea, perfil, targetFecha, onClose, onCompletada }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Nota de voz</label>
           {audio ? (
             <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-              <span className="text-xl">🎙️</span>
+              <Mic size={20} className="text-gray-500 flex-shrink-0" />
               <span className="text-sm text-gray-600 flex-1 truncate">{audio.name}</span>
               <button onClick={() => setAudio(null)} className="text-red-400 text-sm font-medium">Quitar</button>
             </div>
           ) : (
             <label className="flex items-center gap-3 border border-gray-300 rounded-xl px-4 py-3 cursor-pointer bg-gray-50 active:bg-gray-100">
-              <span className="text-xl">🎙️</span>
+              <Mic size={20} className="text-gray-500 flex-shrink-0" />
               <span className="text-sm text-gray-500">Adjuntar nota de voz</span>
               <input type="file" accept="audio/*" onChange={e => setAudio(e.target.files?.[0] ?? null)} className="hidden" />
             </label>
@@ -424,8 +425,8 @@ function ModalCompletar({ tarea, perfil, targetFecha, onClose, onCompletada }) {
         <div className="flex gap-2 pt-1">
           <button onClick={onClose} className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
           <button onClick={guardar} disabled={guardando}
-            className="flex-1 bg-verde-600 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
-            {guardando ? 'Guardando...' : '✓ Marcar como hecha'}
+            className="flex-1 bg-verde-600 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
+            {guardando ? 'Guardando...' : <><Check size={16} strokeWidth={3} /> Marcar como hecha</>}
           </button>
         </div>
       </div>
@@ -502,7 +503,7 @@ function ModalReporte({ perfil, fincas, hoy, reporteEditar, onClose, onGuardado 
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{esEdicion ? '✏️' : '⚡'}</span>
+          {esEdicion ? <Pencil size={24} className="text-gray-700" /> : <Zap size={24} className="text-amber-600" />}
           <h3 className="font-bold text-gray-800">{esEdicion ? 'Corregir reporte' : 'Reportar actividad extraordinaria'}</h3>
         </div>
         {esEdicion && reporteEditar.comentario_rechazo && (
@@ -550,7 +551,7 @@ function ModalReporte({ perfil, fincas, hoy, reporteEditar, onClose, onGuardado 
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-24 cursor-pointer bg-gray-50">
-                <span className="text-xl mb-1">📷</span>
+                <Camera size={24} className="mb-1 text-gray-400" />
                 <span className="text-xs text-gray-500">Adjuntar foto (opcional)</span>
                 <input type="file" accept="image/*" onChange={onFoto} className="hidden" />
               </label>
@@ -559,8 +560,8 @@ function ModalReporte({ perfil, fincas, hoy, reporteEditar, onClose, onGuardado 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm">Cancelar</button>
             <button type="submit" disabled={guardando}
-              className="flex-1 bg-orange-500 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
-              {guardando ? 'Enviando...' : esEdicion ? '✏️ Reenviar corregido' : '⚡ Enviar reporte'}
+              className="flex-1 bg-orange-500 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
+              {guardando ? 'Enviando...' : esEdicion ? <><Pencil size={16} /> Reenviar corregido</> : <><Zap size={16} /> Enviar reporte</>}
             </button>
           </div>
         </form>
@@ -636,7 +637,7 @@ function VistaHoyGestor() {
   if (cargando) return <p className="text-gray-400 text-sm">Cargando...</p>
   if (datos.length === 0) return (
     <div className="text-center py-12">
-      <p className="text-4xl mb-3">📋</p>
+      <ListChecks size={40} className="mx-auto mb-3 text-gray-300" />
       <p className="text-gray-400 text-sm">No hay actividades recurrentes asignadas</p>
     </div>
   )
@@ -663,7 +664,7 @@ function VistaHoyGestor() {
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
                     t.completacion ? 'bg-verde-600' : 'border-2 border-gray-300'
                   }`}>
-                    {t.completacion && <span className="text-white text-[10px] font-bold">✓</span>}
+                    {t.completacion && <Check size={12} className="text-white" strokeWidth={3} />}
                   </div>
                   <p className={`text-sm flex-1 ${t.completacion ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{t.titulo}</p>
                   {t.completacion && (t.completacion.foto_url || t.completacion.audio_url || t.completacion.nota) && (
@@ -741,7 +742,7 @@ function VistaGestionar({ perfil, abrirNuevaSignal }) {
     <div className="space-y-4">
       {cargando ? <p className="text-gray-400 text-sm">Cargando...</p> : tareas.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-4xl mb-3">🔄</p>
+          <RefreshCw size={40} className="mx-auto mb-3 text-gray-300" />
           <p className="text-gray-400 text-sm">No hay actividades recurrentes</p>
           <p className="text-xs text-gray-300 mt-1">Crea actividades que se repiten cada día</p>
         </div>
@@ -749,7 +750,7 @@ function VistaGestionar({ perfil, abrirNuevaSignal }) {
         <div className="space-y-2">
           {tareas.map(t => (
             <div key={t.id} className="bg-white rounded-2xl px-4 py-3.5 border border-gray-100 shadow-sm flex items-start gap-3">
-              <span className="text-xl mt-0.5">🔄</span>
+              <RefreshCw size={20} className="mt-0.5 flex-shrink-0 text-verde-700" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800">{t.titulo}</p>
                 <p className="text-xs text-gray-500">{t.usuarios?.nombre ?? '—'}{t.fincas?.nombre ? ` · ${t.fincas.nombre}` : ''}</p>

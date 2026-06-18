@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fmtFecha } from '../lib/fecha'
+import { Search, X, PawPrint, CheckCircle2, Package, Syringe } from '../components/icons'
 
 export default function Busqueda() {
   const navigate = useNavigate()
@@ -42,7 +43,7 @@ export default function Busqueda() {
       <h2 className="text-xl font-bold text-gray-800">Búsqueda</h2>
 
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           autoFocus
           value={texto}
@@ -52,7 +53,7 @@ export default function Busqueda() {
         />
         {texto && (
           <button onClick={() => { setTexto(''); setResultados(null) }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">×</button>
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X size={18} /></button>
         )}
       </div>
 
@@ -65,7 +66,7 @@ export default function Busqueda() {
           <div className="space-y-4">
 
             {resultados.animales.length > 0 && (
-              <Grupo titulo="🐄 Animales">
+              <Grupo icono={PawPrint} titulo="Animales">
                 {resultados.animales.map(a => (
                   <Fila key={a.id} onClick={() => navigate(`/animales/ficha/${a.id}`)}>
                     <div className="font-semibold text-sm text-gray-800">{a.identificacion}{a.nombre ? ` · ${a.nombre}` : ''}</div>
@@ -76,7 +77,7 @@ export default function Busqueda() {
             )}
 
             {resultados.tareas.length > 0 && (
-              <Grupo titulo="✅ Actividades pendientes">
+              <Grupo icono={CheckCircle2} titulo="Actividades pendientes">
                 {resultados.tareas.map(t => (
                   <Fila key={t.id} onClick={() => navigate('/actividades/puntuales')}>
                     <div className="font-semibold text-sm text-gray-800">{t.titulo}</div>
@@ -88,7 +89,7 @@ export default function Busqueda() {
             )}
 
             {resultados.insumos.length > 0 && (
-              <Grupo titulo="📦 Inventario">
+              <Grupo icono={Package} titulo="Inventario">
                 {resultados.insumos.map(i => (
                   <Fila key={i.id} onClick={() => navigate('/inventario')}>
                     <div className="font-semibold text-sm text-gray-800">{i.nombre}</div>
@@ -99,7 +100,7 @@ export default function Busqueda() {
             )}
 
             {resultados.eventos.length > 0 && (
-              <Grupo titulo="💉 Eventos sanitarios">
+              <Grupo icono={Syringe} titulo="Eventos sanitarios">
                 {resultados.eventos.map(e => (
                   <Fila key={e.id} onClick={() => navigate(`/animales/ficha/${e.animales?.id ?? ''}`)}>
                     <div className="font-semibold text-sm text-gray-800">{e.tipo} · {fmtFecha(e.fecha)}</div>
@@ -116,7 +117,7 @@ export default function Busqueda() {
 
       {!resultados && !buscando && (
         <div className="text-center py-12 text-gray-300">
-          <div className="text-5xl mb-3">🔍</div>
+          <Search size={48} className="mx-auto mb-3" />
           <p className="text-sm">Escribe al menos 2 caracteres</p>
         </div>
       )}
@@ -124,10 +125,13 @@ export default function Busqueda() {
   )
 }
 
-function Grupo({ titulo, children }) {
+function Grupo({ icono: Icono, titulo, children }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{titulo}</p>
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        {Icono && <Icono size={14} />}
+        {titulo}
+      </p>
       <div className="space-y-1">{children}</div>
     </div>
   )

@@ -20,9 +20,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-verde-50 px-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-sm p-8">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🐄</div>
-          <h1 className="text-2xl font-bold text-verde-800">AGROMIO</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestión de fincas lecheras</p>
+          <h1 className="text-2xl font-bold tracking-tight text-verde-800 mb-1">AGROMIO</h1>
+          <p className="text-gray-500 text-sm">Gestión de fincas lecheras</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

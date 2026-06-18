@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { Baby, RefreshCw, Truck, Wallet, DollarSign, XCircle, ClipboardCheck, Plus } from '../components/icons'
+import { Skull } from 'lucide-react'
 
 const TIPOS = ['nacimiento','cambio_categoria','traslado','compra','venta','muerte','descarte']
 const TIPO_ICON = {
-  nacimiento: '🐣', cambio_categoria: '🔄', traslado: '🚛',
-  compra: '💰', venta: '💵', muerte: '💀', descarte: '❌'
+  nacimiento: Baby, cambio_categoria: RefreshCw, traslado: Truck,
+  compra: Wallet, venta: DollarSign, muerte: Skull, descarte: XCircle
 }
 
 export default function Movimientos() {
@@ -103,8 +105,8 @@ export default function Movimientos() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Movimientos</h2>
         <button onClick={() => setModalAbierto(true)}
-          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-          + Registrar
+          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition inline-flex items-center gap-1">
+          <Plus size={16} /> Registrar
         </button>
       </div>
 
@@ -120,9 +122,11 @@ export default function Movimientos() {
         <p className="text-gray-400 text-sm text-center py-8">No hay movimientos registrados</p>
       ) : (
         <div className="space-y-2">
-          {movimientos.map(m => (
+          {movimientos.map(m => {
+            const Icon = TIPO_ICON[m.tipo] ?? ClipboardCheck
+            return (
             <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-start gap-3">
-              <span className="text-xl mt-0.5">{TIPO_ICON[m.tipo] ?? '📋'}</span>
+              <Icon size={20} className="mt-0.5 text-verde-700" />
               <div className="flex-1">
                 <div className="font-semibold text-sm text-gray-800">
                   {m.animales ? `${m.animales.identificacion}${m.animales.nombre ? ` · ${m.animales.nombre}` : ''}` : '—'}
@@ -139,7 +143,8 @@ export default function Movimientos() {
                 {m.descripcion && <div className="text-xs text-gray-500 mt-0.5">{m.descripcion}</div>}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

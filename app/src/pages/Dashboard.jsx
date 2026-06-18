@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { fmtFecha } from '../lib/fecha'
+import { PawPrint, Milk, ListChecks, Warehouse, Wallet, Siren, AlertTriangle, Calendar, Clock, Pencil, ChevronRight, TrendingUp, TrendingDown, X } from '../components/icons'
 
 const META_DEFAULT = 10000
 
@@ -77,7 +78,7 @@ export default function Dashboard() {
         ...(ordPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'ordenos', _desc: `Ordeño — ${Number(r.litros).toFixed(1)} L` })),
         ...(sanPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'eventos_sanitarios', _desc: `Sanidad: ${r.tipo}${r.diagnostico ? ` — ${r.diagnostico}` : ''}` })),
         ...(repPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'eventos_reproductivos', _desc: `Reproducción: ${r.tipo}` })),
-        ...(repTrabPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'reportes_trabajador', _desc: `⚡ Reporte: ${r.titulo}` })),
+        ...(repTrabPend ?? []).map(r => ({ id: r.id, fecha: r.fecha, _tabla: 'reportes_trabajador', _desc: `Reporte: ${r.titulo}` })),
       ])
 
       const nuevasAlertas = []
@@ -134,9 +135,9 @@ export default function Dashboard() {
   }
 
   const modulos = [
-    { to: '/animales',     icon: '🐄', label: 'Animales',     desc: 'Hato, sanidad y reproducción' },
-    { to: '/actividades',  icon: '✅', label: 'Actividades',  desc: 'Pendientes y recurrentes' },
-    { to: '/ordenos',      icon: '🥛', label: 'Ordeños',      desc: 'Registro de producción' },
+    { to: '/animales',     icon: PawPrint,        label: 'Animales',     desc: 'Hato, sanidad y reproducción' },
+    { to: '/actividades',  icon: ListChecks, label: 'Actividades',  desc: 'Pendientes y recurrentes' },
+    { to: '/ordenos',      icon: Milk,       label: 'Ordeños',      desc: 'Registro de producción' },
   ]
 
   return (
@@ -148,7 +149,7 @@ export default function Dashboard() {
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
         <div className="absolute -bottom-12 -left-8 w-40 h-40 rounded-full bg-white/5" />
 
-        <p className="text-verde-200 text-sm mb-4">Hola {perfil?.nombre?.split(' ')[0]} 👋</p>
+        <p className="text-verde-200 text-sm mb-4">Hola {perfil?.nombre?.split(' ')[0]}</p>
 
         <div className="flex items-end justify-between mb-5">
           <div>
@@ -160,19 +161,20 @@ export default function Dashboard() {
               <span className="text-2xl text-verde-300 mb-2">L</span>
             </div>
             {!cargando && resumen.litrosAyer > 0 && (
-              <p className={`text-sm mt-1 font-medium ${diffAyer >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                {diffAyer >= 0 ? '▲' : '▼'} {Math.abs(diffAyer).toFixed(0)} L vs ayer
+              <p className={`text-sm mt-1 font-medium flex items-center gap-1 ${diffAyer >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                {diffAyer >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />} {Math.abs(diffAyer).toFixed(0)} L vs ayer
               </p>
             )}
           </div>
 
           <div className="text-right">
-            <div className={`text-xs font-bold px-3 py-1.5 rounded-full mb-2 ${
+            <div className={`text-xs font-bold px-3 py-1.5 rounded-full mb-2 inline-flex items-center gap-1.5 ${
               pct >= 90 ? 'bg-green-400/30 text-green-200' :
               pct >= 70 ? 'bg-yellow-400/30 text-yellow-200' :
                           'bg-red-400/30 text-red-200'
             }`}>
-              {pct >= 90 ? '🟢 En meta' : pct >= 70 ? '🟡 Cerca' : '🔴 Bajo'}
+              <span className={`inline-block w-2.5 h-2.5 rounded-full ${pct >= 90 ? 'bg-verde-600' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} />
+              {pct >= 90 ? 'En meta' : pct >= 70 ? 'Cerca' : 'Bajo'}
             </div>
             <p className="text-verde-400 text-xs">{Math.round(pct)}% de la meta</p>
           </div>
@@ -195,12 +197,12 @@ export default function Dashboard() {
               <input autoFocus type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)}
                 className="bg-white/20 text-white rounded-lg px-2 py-1 w-24 text-xs focus:outline-none focus:ring-1 focus:ring-white/40" />
               <button type="submit" className="text-white font-bold text-xs bg-white/20 px-2 py-1 rounded-lg">OK</button>
-              <button type="button" onClick={() => setEditandoMeta(false)} className="text-verde-400">×</button>
+              <button type="button" onClick={() => setEditandoMeta(false)} className="text-verde-400 flex items-center"><X size={16} /></button>
             </form>
           ) : (
             <button onClick={() => { setMetaInput(meta); setEditandoMeta(true) }}
               className="text-verde-400 hover:text-white transition flex items-center gap-1">
-              Meta: {meta.toLocaleString()} L <span className="text-[10px]">✏️</span>
+              Meta: {meta.toLocaleString()} L <Pencil size={12} />
             </button>
           )}
         </div>
@@ -215,7 +217,7 @@ export default function Dashboard() {
               a.color === 'orange' ? 'bg-orange-50 text-orange-700 border border-orange-100' :
                                      'bg-yellow-50 text-yellow-700 border border-yellow-100'
             }`}>
-              <span>{a.color === 'red' ? '🚨' : a.color === 'orange' ? '⚠️' : '📅'}</span>
+              <span className="flex-shrink-0 mt-0.5">{a.color === 'red' ? <Siren size={16} className="text-red-600" /> : a.color === 'orange' ? <AlertTriangle size={16} className="text-amber-600" /> : <Calendar size={16} />}</span>
               {a.texto}
             </div>
           ))}
@@ -226,7 +228,7 @@ export default function Dashboard() {
       {pendientes.length > 0 && (
         <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
           <div className="px-4 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
-            <span className="text-amber-500 text-lg">⏳</span>
+            <Clock size={20} className="text-amber-500" />
             <span className="text-sm font-bold text-amber-800">Pendientes de aprobación</span>
             <span className="bg-amber-200 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendientes.length}</span>
             <button onClick={aprobarTodo} disabled={aprobando === 'all'}
@@ -265,12 +267,12 @@ export default function Dashboard() {
       {!cargando && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: '🏡', label: 'Fincas',    valor: resumen.fincas   },
-            { icon: '🐄', label: 'Animales',  valor: resumen.animales  },
-            { icon: '🥛', label: 'En ordeño', valor: resumen.enOrdeno },
-          ].map(({ icon, label, valor }) => (
+            { icon: Warehouse, label: 'Fincas',    valor: resumen.fincas   },
+            { icon: PawPrint,       label: 'Animales',  valor: resumen.animales  },
+            { icon: Milk,      label: 'En ordeño', valor: resumen.enOrdeno },
+          ].map(({ icon: Icon, label, valor }) => (
             <div key={label} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-              <div className="text-3xl mb-1">{icon}</div>
+              <div className="flex justify-center mb-1"><Icon size={28} className="text-verde-700" /></div>
               <div className="text-2xl font-black text-gray-800">{valor}</div>
               <div className="text-xs text-gray-400 mt-0.5">{label}</div>
             </div>
@@ -282,8 +284,8 @@ export default function Dashboard() {
       {!cargando && (finanzas.ingresos > 0 || finanzas.gastos > 0) && (
         <Link to="/financiero" className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-gray-700">💰 Finanzas este mes</span>
-            <span className="text-xs text-gray-400">Ver detalle ›</span>
+            <span className="text-sm font-bold text-gray-700 flex items-center gap-1.5"><Wallet size={18} className="text-verde-700" /> Finanzas este mes</span>
+            <span className="text-xs text-gray-400 flex items-center gap-0.5">Ver detalle <ChevronRight size={14} /></span>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-green-50 rounded-xl py-2">
@@ -308,15 +310,15 @@ export default function Dashboard() {
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Módulos</p>
         <div className="space-y-2">
-          {modulos.map(({ to, icon, label, desc }) => (
+          {modulos.map(({ to, icon: Icon, label, desc }) => (
             <Link key={to} to={to}
               className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-4 shadow-sm border border-gray-100 active:bg-gray-50 transition">
-              <span className="text-2xl w-9 text-center">{icon}</span>
+              <span className="w-9 flex justify-center"><Icon size={24} className="text-verde-700" /></span>
               <div className="flex-1">
                 <div className="text-sm font-semibold text-gray-800">{label}</div>
                 <div className="text-xs text-gray-400">{desc}</div>
               </div>
-              <span className="text-gray-300 text-xl">›</span>
+              <ChevronRight size={20} className="text-gray-300" />
             </Link>
           ))}
         </div>

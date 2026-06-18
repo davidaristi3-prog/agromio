@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { PawPrint } from '../components/icons'
 
 const TIPOS = ['vaca','novilla','ternera','ternero','toro']
 const ESTADOS = ['en_ordeno','seca','pre_parto','no_aplica']
@@ -73,7 +74,7 @@ export default function Animales() {
         <div className="space-y-2">
           {visibles.map(a => (
             <div key={a.id} onClick={() => navigate(`/animales/ficha/${a.id}`)} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow transition">
-              <span className="text-2xl">{a.tipo === 'toro' ? '🐂' : '🐄'}</span>
+              <PawPrint size={24} className="text-verde-700" />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-800 text-sm">{a.identificacion} {a.nombre ? `· ${a.nombre}` : ''}</div>
                 <div className="text-xs text-gray-500">{a.fincas?.nombre} · {a.tipo} {a.raza ? `· ${a.raza}` : ''}</div>

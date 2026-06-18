@@ -26,26 +26,27 @@ import TareasRecurrentes from './pages/TareasRecurrentes'
 import HistorialAprobaciones from './pages/HistorialAprobaciones'
 import ResumenActividades from './pages/ResumenActividades'
 import Metas from './pages/Metas'
+import { PawPrint, Microscope, Syringe, Truck, BarChart3, ListChecks, RefreshCw, ClipboardCheck } from './components/icons'
 // Potreros carga el mapa (mapbox-gl, pesado) solo cuando se abre
 const Potreros = lazy(() => import('./pages/Potreros'))
 
 // Pestañas del módulo Animales (iguales para todos los roles)
 const TABS_ANIMALES = [
-  { to: '/animales',              label: 'Listado',      icon: '🐄', end: true },
-  { to: '/animales/reproduccion', label: 'Reproducción', icon: '🔬' },
-  { to: '/animales/sanidad',      label: 'Sanidad',      icon: '💉' },
-  { to: '/animales/movimientos',  label: 'Movimientos',  icon: '🚛' },
+  { to: '/animales',              label: 'Listado',      icon: PawPrint,        end: true },
+  { to: '/animales/reproduccion', label: 'Reproducción', icon: Microscope },
+  { to: '/animales/sanidad',      label: 'Sanidad',      icon: Syringe },
+  { to: '/animales/movimientos',  label: 'Movimientos',  icon: Truck },
 ]
 
 function ActividadesHub() {
   const { perfil } = useAuth()
   const tabs = [
-    { to: '/actividades',             label: 'Resumen',     icon: '📊', end: true },
-    { to: '/actividades/puntuales',   label: 'Puntuales',   icon: '✅' },
-    { to: '/actividades/recurrentes', label: 'Recurrentes', icon: '🔄' },
+    { to: '/actividades',             label: 'Resumen',     icon: BarChart3, end: true },
+    { to: '/actividades/puntuales',   label: 'Puntuales',   icon: ListChecks },
+    { to: '/actividades/recurrentes', label: 'Recurrentes', icon: RefreshCw },
   ]
   if (perfil?.rol === 'propietario' || perfil?.rol === 'mayordomo') {
-    tabs.push({ to: '/actividades/historial', label: 'Aprobaciones', icon: '📋' })
+    tabs.push({ to: '/actividades/historial', label: 'Aprobaciones', icon: ClipboardCheck })
   }
   return <Hub tabs={tabs} />
 }

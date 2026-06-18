@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { Milk, Microscope, Syringe, Pin, Target, Plus, X } from '../components/icons'
 
 // ── Catálogo de indicadores con cálculo automático ───────────────────────────
 // estado:true  → solo cuenta registros aprobados (ordeños/eventos)
@@ -16,7 +17,12 @@ const INDICADORES = {
   personalizada:   { nombre: '', categoria: 'otro', unidad: '', periodo: 'mensual', direccion: 'mayor', manual: true },
 }
 
-const CAT_LABEL = { produccion: '🥛 Producción', reproduccion: '🔬 Reproducción', sanidad: '💉 Sanidad', otro: '📌 Otros' }
+const CAT_LABEL = {
+  produccion:   { icon: Milk,       label: 'Producción' },
+  reproduccion: { icon: Microscope, label: 'Reproducción' },
+  sanidad:      { icon: Syringe,    label: 'Sanidad' },
+  otro:         { icon: Pin,        label: 'Otros' },
+}
 const PERIODO_LABEL = { diario: 'por día', mensual: 'este mes', anual: 'este año' }
 
 function fechaLocal(d) {
@@ -72,10 +78,10 @@ function evaluar(meta, real) {
 }
 
 const COLOR = {
-  verde:    { dot: 'bg-verde-500', bar: 'bg-verde-500', txt: 'text-verde-700', emoji: '🟢' },
-  amarillo: { dot: 'bg-amber-400', bar: 'bg-amber-400', txt: 'text-amber-600', emoji: '🟡' },
-  rojo:     { dot: 'bg-red-500',   bar: 'bg-red-500',   txt: 'text-red-600',   emoji: '🔴' },
-  gray:     { dot: 'bg-gray-300',  bar: 'bg-gray-300',  txt: 'text-gray-400',  emoji: '⚪' },
+  verde:    { dot: 'bg-verde-500', bar: 'bg-verde-500', txt: 'text-verde-700' },
+  amarillo: { dot: 'bg-amber-400', bar: 'bg-amber-400', txt: 'text-amber-600' },
+  rojo:     { dot: 'bg-red-500',   bar: 'bg-red-500',   txt: 'text-red-600' },
+  gray:     { dot: 'bg-gray-300',  bar: 'bg-gray-300',  txt: 'text-gray-400' },
 }
 
 const fmtNum = n => (Number.isInteger(n) ? n : Math.round(n)).toLocaleString('es-CO')
@@ -119,11 +125,11 @@ export default function Metas() {
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">🎯 Metas</h2>
+        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Target size={22} className="text-verde-700" /> Metas</h2>
         {esPropietario && (
           <button onClick={() => setModal('nuevo')}
-            className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-            + Nueva
+            className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition flex items-center gap-1">
+            <Plus size={16} /> Nueva
           </button>
         )}
       </div>
@@ -132,21 +138,27 @@ export default function Metas() {
         <p className="text-gray-400 text-sm">Cargando...</p>
       ) : metas.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-4xl mb-3">🎯</p>
+          <Target size={40} className="text-gray-300 mx-auto mb-3" />
           <p className="text-gray-400 text-sm">Aún no hay metas</p>
           {esPropietario && <p className="text-xs text-gray-300 mt-1">Toca "+ Nueva" para definir tu primera meta</p>}
         </div>
       ) : (
-        Object.entries(porCategoria).map(([cat, items]) => (
+        Object.entries(porCategoria).map(([cat, items]) => {
+          const catInfo = CAT_LABEL[cat]
+          const CatIcon = catInfo?.icon
+          return (
           <div key={cat} className="space-y-2">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2">{CAT_LABEL[cat] ?? cat}</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2 flex items-center gap-1.5">
+              {CatIcon && <CatIcon size={14} />}{catInfo?.label ?? cat}
+            </p>
             {items.map(m => (
               <TarjetaMeta key={m.id} meta={m} real={reales[m.id]} fincas={fincas}
                 esPropietario={esPropietario}
                 onEditar={() => setModal(m)} onEliminar={() => eliminar(m.id)} />
             ))}
           </div>
-        ))
+          )
+        })
       )}
 
       {modal && (
@@ -179,7 +191,7 @@ function TarjetaMeta({ meta, real, fincas, esPropietario, onEditar, onEliminar }
         {esPropietario && (
           <div className="flex gap-2 flex-shrink-0">
             <button onClick={onEditar} className="text-gray-300 hover:text-verde-600 text-sm transition">Editar</button>
-            <button onClick={onEliminar} className="text-gray-300 hover:text-red-500 text-lg leading-none transition">×</button>
+            <button onClick={onEliminar} className="text-gray-300 hover:text-red-500 leading-none transition"><X size={16} /></button>
           </div>
         )}
       </div>
@@ -196,7 +208,7 @@ function TarjetaMeta({ meta, real, fincas, esPropietario, onEditar, onEliminar }
               {real == null ? '—' : fmtNum(real)}
               <span className="text-xs font-normal text-gray-400"> / {fmtNum(meta.valor_objetivo)} {meta.unidad}</span>
             </span>
-            <span className="text-xs">{c.emoji}</span>
+            <span className={`inline-block w-2.5 h-2.5 rounded-full ${c.dot}`} />
           </div>
           <div className="w-full bg-gray-100 rounded-full h-2">
             <div className={`${c.bar} h-2 rounded-full transition-all`} style={{ width: `${Math.min(pct, 100)}%` }} />
@@ -280,7 +292,7 @@ function ModalMeta({ meta, fincas, perfil, onClose, onGuardado }) {
               <select value={indicador} onChange={e => cambiarIndicador(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-verde-500">
                 {Object.entries(INDICADORES).map(([k, v]) => (
-                  <option key={k} value={k}>{k === 'personalizada' ? '➕ Personalizada (manual)' : v.nombre}</option>
+                  <option key={k} value={k}>{k === 'personalizada' ? 'Personalizada (manual)' : v.nombre}</option>
                 ))}
               </select>
               {!manual && <p className="text-[11px] text-gray-400 mt-1">El avance real se calcula solo desde los registros.</p>}

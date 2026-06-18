@@ -4,15 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Color de marca: verde petróleo / teal sobrio (token se sigue llamando "verde")
         verde: {
-          50:  '#f0fdf4',
-          100: '#dcfce7',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
+          50:  '#eef5f4',
+          100: '#d3e6e3',
+          200: '#a7cdc8',
+          500: '#1a8f86',
+          600: '#137a72',
+          700: '#0f5d57',
+          800: '#0c4843',
+          900: '#08302d',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
     },
   },

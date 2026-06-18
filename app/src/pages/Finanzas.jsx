@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { TrendingUp, TrendingDown } from '../components/icons'
 
 const PERIODOS = [
   { label: 'Este mes',        dias: 30  },
@@ -167,7 +168,9 @@ export default function Finanzas() {
               <p className="text-gray-400 text-sm text-center py-6">Sin transacciones en este período</p>
             ) : lista.map(t => (
               <div key={t.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <span className="text-2xl">{t.tipo === 'ingreso' ? '💰' : '💸'}</span>
+                {t.tipo === 'ingreso'
+                  ? <TrendingUp size={24} className="text-verde-700" />
+                  : <TrendingDown size={24} className="text-red-600" />}
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-gray-800">{t.categoria}</div>
                   {t.descripcion && <div className="text-xs text-gray-500 truncate">{t.descripcion}</div>}
@@ -192,8 +195,10 @@ export default function Finanzas() {
             <div className="flex rounded-xl overflow-hidden border border-gray-300">
               {['gasto','ingreso'].map(t => (
                 <button key={t} type="button" onClick={() => { setTipo(t); setForm(f => ({...f, categoria: ''})) }}
-                  className={`flex-1 py-2 text-sm font-semibold transition ${tipo === t ? (t === 'gasto' ? 'bg-red-500 text-white' : 'bg-verde-600 text-white') : 'bg-white text-gray-500'}`}>
-                  {t === 'gasto' ? '💸 Gasto' : '💰 Ingreso'}
+                  className={`flex-1 py-2 text-sm font-semibold transition flex items-center justify-center gap-1.5 ${tipo === t ? (t === 'gasto' ? 'bg-red-500 text-white' : 'bg-verde-600 text-white') : 'bg-white text-gray-500'}`}>
+                  {t === 'gasto'
+                    ? <><TrendingDown size={16} /> Gasto</>
+                    : <><TrendingUp size={16} /> Ingreso</>}
                 </button>
               ))}
             </div>

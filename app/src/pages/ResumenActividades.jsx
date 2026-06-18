@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { Plus, CheckCircle2, Clock, ListChecks, RefreshCw } from '../components/icons'
 
 // Fecha local en formato YYYY-MM-DD (evita el corrimiento de toISOString por UTC)
 function fechaLocal(d) {
@@ -69,7 +70,7 @@ export default function ResumenActividades() {
         const v = t.fecha_vencimiento
         if (!v || v <= finPeriodo) {
           const vencida = v && v < hoyStr
-          pendientes.push({ ...base, key: `p${t.id}`, detalle: v ? `${vencida ? '⚠️ Venció' : 'Vence'} ${fmtFecha(v)}` : 'Sin fecha límite' })
+          pendientes.push({ ...base, key: `p${t.id}`, detalle: v ? `${vencida ? 'Venció' : 'Vence'} ${fmtFecha(v)}` : 'Sin fecha límite' })
           totalPend++
         }
       }
@@ -108,7 +109,7 @@ export default function ResumenActividades() {
         else pendientes.push({ ...base, key: `r${t.id}`, detalle: 'Pendiente hoy' })
       } else {
         const faltan = esperadas - hechas
-        if (faltan === 0) ejecutadas.push({ ...base, key: `r${t.id}`, detalle: `${hechas}/${esperadas} días ✓` })
+        if (faltan === 0) ejecutadas.push({ ...base, key: `r${t.id}`, detalle: `${hechas}/${esperadas} días` })
         else pendientes.push({ ...base, key: `r${t.id}`, detalle: `${hechas}/${esperadas} días · faltan ${faltan}` })
       }
     })
@@ -123,8 +124,8 @@ export default function ResumenActividades() {
         <h2 className="text-xl font-bold text-gray-800">Resumen de actividades</h2>
         {puedeCrear && (
           <button onClick={() => setChooser(true)}
-            className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-            + Nueva
+            className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition flex items-center gap-1">
+            <Plus size={16} /> Nueva
           </button>
         )}
       </div>
@@ -143,11 +144,11 @@ export default function ResumenActividades() {
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-verde-50 border border-verde-200 rounded-2xl p-4 text-center">
           <div className="text-3xl font-black text-verde-700">{cargando ? '—' : resumen.ejec}</div>
-          <div className="text-xs text-verde-600 mt-0.5 font-medium">✅ Ejecutadas</div>
+          <div className="text-xs text-verde-600 mt-0.5 font-medium flex items-center justify-center gap-1"><CheckCircle2 size={14} /> Ejecutadas</div>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
           <div className="text-3xl font-black text-amber-600">{cargando ? '—' : resumen.pend}</div>
-          <div className="text-xs text-amber-600 mt-0.5 font-medium">⏳ Pendientes</div>
+          <div className="text-xs text-amber-600 mt-0.5 font-medium flex items-center justify-center gap-1"><Clock size={14} /> Pendientes</div>
         </div>
       </div>
 
@@ -155,8 +156,8 @@ export default function ResumenActividades() {
         <p className="text-gray-400 text-sm">Cargando...</p>
       ) : (
         <>
-          <Seccion titulo="⏳ Pendientes por ejecutar" items={resumen.pendientes} vacio="¡Nada pendiente! 🎉" tono="pend" />
-          <Seccion titulo="✅ Ejecutadas" items={resumen.ejecutadas} vacio="Aún nada ejecutado en este periodo" tono="ejec" />
+          <Seccion icon={Clock} titulo="Pendientes por ejecutar" items={resumen.pendientes} vacio="¡Nada pendiente!" tono="pend" />
+          <Seccion icon={CheckCircle2} titulo="Ejecutadas" items={resumen.ejecutadas} vacio="Aún nada ejecutado en este periodo" tono="ejec" />
         </>
       )}
 
@@ -167,7 +168,7 @@ export default function ResumenActividades() {
             <h3 className="font-bold text-gray-800">¿Qué quieres crear?</h3>
             <button onClick={() => navigate('/actividades/puntuales', { state: { nueva: true } })}
               className="w-full text-left border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 hover:border-verde-400 hover:shadow transition">
-              <span className="text-2xl">✅</span>
+              <ListChecks size={24} className="text-verde-700 flex-shrink-0" />
               <div>
                 <div className="font-semibold text-gray-800 text-sm">Actividad puntual</div>
                 <div className="text-xs text-gray-500">Una sola vez (ej. reparar una cerca)</div>
@@ -175,7 +176,7 @@ export default function ResumenActividades() {
             </button>
             <button onClick={() => navigate('/actividades/recurrentes', { state: { nueva: true } })}
               className="w-full text-left border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 hover:border-verde-400 hover:shadow transition">
-              <span className="text-2xl">🔄</span>
+              <RefreshCw size={24} className="text-verde-700 flex-shrink-0" />
               <div>
                 <div className="font-semibold text-gray-800 text-sm">Actividad recurrente</div>
                 <div className="text-xs text-gray-500">Se repite (diaria, semanal o mensual)</div>
@@ -190,17 +191,21 @@ export default function ResumenActividades() {
   )
 }
 
-function Seccion({ titulo, items, vacio, tono }) {
+function Seccion({ icon: Icon, titulo, items, vacio, tono }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2">{titulo}</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 pt-2 flex items-center gap-1.5">
+        {Icon && <Icon size={14} />}{titulo}
+      </p>
       {items.length === 0 ? (
         <p className="text-gray-400 text-sm text-center py-4">{vacio}</p>
       ) : (
         items.map(i => (
           <div key={i.key}
             className={`bg-white border rounded-xl px-4 py-3 flex items-center gap-3 ${tono === 'ejec' ? 'border-verde-100' : 'border-gray-200'}`}>
-            <span className="text-lg">{i.tipo === 'recurrente' ? '🔄' : '✅'}</span>
+            {i.tipo === 'recurrente'
+              ? <RefreshCw size={20} className="text-verde-700 flex-shrink-0" />
+              : <CheckCircle2 size={20} className="text-verde-700 flex-shrink-0" />}
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-semibold ${tono === 'ejec' ? 'text-gray-500' : 'text-gray-800'}`}>{i.titulo}</p>
               <p className="text-xs text-gray-400">

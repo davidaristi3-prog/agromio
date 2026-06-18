@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { Pill, Syringe, Wheat, Tablets, Microscope, Package, ClipboardCheck, Siren, Plus, Minus } from '../components/icons'
 
 const CATEGORIAS = ['medicamento','vacuna','concentrado','mineral','desparasitante','otro']
 const CAT_ICON = {
-  medicamento: '💊', vacuna: '💉', concentrado: '🌾',
-  mineral: '🧂', desparasitante: '🔬', otro: '📦'
+  medicamento: Pill, vacuna: Syringe, concentrado: Wheat,
+  mineral: Tablets, desparasitante: Microscope, otro: Package
 }
 const CAT_LABEL = {
   medicamento: 'Medicamentos', vacuna: 'Vacunas', concentrado: 'Concentrados',
@@ -106,20 +107,25 @@ export default function Inventario() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Inventario</h2>
         <button onClick={() => setModalInsumo(true)}
-          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-          + Insumo
+          className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition inline-flex items-center gap-1">
+          <Plus size={16} /> Insumo
         </button>
       </div>
 
       {/* Alerta stock bajo */}
       {agotados.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <p className="text-sm font-semibold text-red-700 mb-1">🚨 Stock bajo o agotado</p>
-          {agotados.map(i => (
-            <p key={i.id} className="text-xs text-red-600">
-              {CAT_ICON[i.categoria]} {i.nombre} — {i.stock_actual} {i.unidad} (mín. {i.stock_minimo})
-            </p>
-          ))}
+          <p className="text-sm font-semibold text-red-700 mb-1 inline-flex items-center gap-1.5">
+            <Siren size={16} className="text-red-600" /> Stock bajo o agotado
+          </p>
+          {agotados.map(i => {
+            const Icon = CAT_ICON[i.categoria] ?? Package
+            return (
+              <p key={i.id} className="text-xs text-red-600 flex items-center gap-1.5">
+                <Icon size={14} /> {i.nombre} — {i.stock_actual} {i.unidad} (mín. {i.stock_minimo})
+              </p>
+            )
+          })}
         </div>
       )}
 
@@ -132,18 +138,21 @@ export default function Inventario() {
 
       {/* Pestañas por categoría */}
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
-        {[{ value: '', icon: '📋', label: 'Todos' },
+        {[{ value: '', icon: ClipboardCheck, label: 'Todos' },
           ...CATEGORIAS.map(c => ({ value: c, icon: CAT_ICON[c], label: CAT_LABEL[c] }))
-        ].map(({ value, icon, label }) => (
+        ].map(({ value, icon, label }) => {
+          const Icon = icon
+          return (
           <button key={value || 'todos'} onClick={() => setFiltroCategoria(value)}
             className={`flex items-center gap-1 whitespace-nowrap text-sm px-4 py-2 rounded-full border transition ${
               filtroCategoria === value
                 ? 'bg-verde-600 text-white border-verde-600 font-semibold'
                 : 'bg-white text-gray-500 border-gray-200'
             }`}>
-            <span>{icon}</span>{label}
+            <Icon size={16} />{label}
           </button>
-        ))}
+          )
+        })}
       </div>
 
       {/* Lista */}
@@ -155,10 +164,11 @@ export default function Inventario() {
         <div className="space-y-2">
           {insumos.map(ins => {
             const bajo = ins.stock_actual <= ins.stock_minimo
+            const Icon = CAT_ICON[ins.categoria] ?? Package
             return (
               <div key={ins.id} className={`bg-white border rounded-xl px-4 py-3 ${bajo ? 'border-red-200' : 'border-gray-200'}`}>
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{CAT_ICON[ins.categoria] ?? '📦'}</span>
+                  <Icon size={28} className="text-verde-700 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm text-gray-800">{ins.nombre}</div>
                     <div className="text-xs text-gray-500">
@@ -175,12 +185,12 @@ export default function Inventario() {
                 </div>
                 <div className="flex gap-2 mt-3 pl-9">
                   <button onClick={() => { setModalMovimiento(ins); setFormMov(f => ({...f, tipo: 'entrada'})) }}
-                    className="flex-1 text-xs bg-verde-50 text-verde-700 border border-verde-200 py-1.5 rounded-lg hover:bg-verde-100 transition font-medium">
-                    + Entrada
+                    className="flex-1 text-xs bg-verde-50 text-verde-700 border border-verde-200 py-1.5 rounded-lg hover:bg-verde-100 transition font-medium inline-flex items-center justify-center gap-1">
+                    <Plus size={14} /> Entrada
                   </button>
                   <button onClick={() => { setModalMovimiento(ins); setFormMov(f => ({...f, tipo: 'salida'})) }}
-                    className="flex-1 text-xs bg-red-50 text-red-600 border border-red-200 py-1.5 rounded-lg hover:bg-red-100 transition font-medium">
-                    − Salida
+                    className="flex-1 text-xs bg-red-50 text-red-600 border border-red-200 py-1.5 rounded-lg hover:bg-red-100 transition font-medium inline-flex items-center justify-center gap-1">
+                    <Minus size={14} /> Salida
                   </button>
                 </div>
               </div>
@@ -229,8 +239,10 @@ export default function Inventario() {
       {modalMovimiento && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setModalMovimiento(null)}>
           <div className="bg-white rounded-t-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-gray-800">
-              {formMov.tipo === 'entrada' ? '+ Entrada' : '− Salida'} · {modalMovimiento.nombre}
+            <h3 className="font-bold text-gray-800 flex items-center gap-1.5">
+              {formMov.tipo === 'entrada'
+                ? <><Plus size={16} /> Entrada</>
+                : <><Minus size={16} /> Salida</>} · {modalMovimiento.nombre}
             </h3>
             <p className="text-sm text-gray-500">
               Stock actual: <strong>{modalMovimiento.stock_actual} {modalMovimiento.unidad}</strong>
@@ -239,13 +251,13 @@ export default function Inventario() {
               <div className="flex gap-2">
                 <button type="button"
                   onClick={() => setFormMov(f => ({...f, tipo: 'entrada'}))}
-                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition ${formMov.tipo === 'entrada' ? 'bg-verde-600 text-white border-verde-600' : 'border-gray-300 text-gray-600'}`}>
-                  + Entrada
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition inline-flex items-center justify-center gap-1 ${formMov.tipo === 'entrada' ? 'bg-verde-600 text-white border-verde-600' : 'border-gray-300 text-gray-600'}`}>
+                  <Plus size={16} /> Entrada
                 </button>
                 <button type="button"
                   onClick={() => setFormMov(f => ({...f, tipo: 'salida'}))}
-                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition ${formMov.tipo === 'salida' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 text-gray-600'}`}>
-                  − Salida
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition inline-flex items-center justify-center gap-1 ${formMov.tipo === 'salida' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 text-gray-600'}`}>
+                  <Minus size={16} /> Salida
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { fmtFecha } from '../lib/fecha'
+import { PawPrint, Milk, Microscope, Syringe, ListChecks, RefreshCw, Warehouse, XCircle, Clock, AlertTriangle, CheckCircle2, ChevronRight } from '../components/icons'
 
 export default function DashboardTrabajador() {
   const { perfil } = useAuth()
@@ -61,13 +62,13 @@ export default function DashboardTrabajador() {
   const hoy = new Date().toISOString().split('T')[0]
 
   const modulos = [
-    { to: '/actividades/recurrentes', icon: '🔄', label: 'Actividades del día', desc: 'Tus actividades diarias' },
-    { to: '/animales',                icon: '🐄', label: 'Animales',            desc: 'Consultar hato y fichas' },
-    { to: '/actividades',             icon: '✅', label: 'Actividades asignadas', desc: 'Ver y completar actividades' },
-    { to: '/ordenos',                 icon: '🥛', label: 'Ordeños',             desc: 'Registrar producción' },
-    { to: '/animales/sanidad',        icon: '💉', label: 'Sanidad',             desc: 'Registrar eventos' },
-    { to: '/animales/reproduccion',   icon: '🔬', label: 'Reproducción',        desc: 'Registrar eventos' },
-    { to: '/fincas',                  icon: '🏡', label: 'Fincas',              desc: 'Ver fincas y lotes' },
+    { to: '/actividades/recurrentes', icon: RefreshCw,  label: 'Actividades del día', desc: 'Tus actividades diarias' },
+    { to: '/animales',                icon: PawPrint,        label: 'Animales',            desc: 'Consultar hato y fichas' },
+    { to: '/actividades',             icon: ListChecks, label: 'Actividades asignadas', desc: 'Ver y completar actividades' },
+    { to: '/ordenos',                 icon: Milk,       label: 'Ordeños',             desc: 'Registrar producción' },
+    { to: '/animales/sanidad',        icon: Syringe,    label: 'Sanidad',             desc: 'Registrar eventos' },
+    { to: '/animales/reproduccion',   icon: Microscope, label: 'Reproducción',        desc: 'Registrar eventos' },
+    { to: '/fincas',                  icon: Warehouse,  label: 'Fincas',              desc: 'Ver fincas y lotes' },
   ]
 
   return (
@@ -77,12 +78,12 @@ export default function DashboardTrabajador() {
       <div className="relative overflow-hidden rounded-3xl bg-verde-700 p-6 shadow-xl">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
         <div className="absolute -bottom-12 -left-8 w-40 h-40 rounded-full bg-white/5" />
-        <p className="text-verde-200 text-sm mb-1">Hola {perfil?.nombre?.split(' ')[0]} 👋</p>
+        <p className="text-verde-200 text-sm mb-1">Hola {perfil?.nombre?.split(' ')[0]}</p>
         <p className="text-white font-bold text-xl mb-4">¿Qué vas a registrar hoy?</p>
         <div className="relative z-10 grid grid-cols-3 gap-2">
-          <AccionRapida to="/ordenos" icon="🥛" label="Ordeño" />
-          <AccionRapida to="/animales/sanidad" icon="💉" label="Sanidad" />
-          <AccionRapida to="/animales/reproduccion" icon="🔬" label="Reproducción" />
+          <AccionRapida to="/ordenos" icon={Milk} label="Ordeño" />
+          <AccionRapida to="/animales/sanidad" icon={Syringe} label="Sanidad" />
+          <AccionRapida to="/animales/reproduccion" icon={Microscope} label="Reproducción" />
         </div>
       </div>
 
@@ -90,7 +91,7 @@ export default function DashboardTrabajador() {
       {rechazados.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
-            <span className="text-red-500 text-lg">❌</span>
+            <XCircle size={20} className="text-red-500" />
             <p className="text-sm font-bold text-red-700">Registros rechazados — requieren corrección</p>
           </div>
           {rechazados.map(r => {
@@ -99,7 +100,7 @@ export default function DashboardTrabajador() {
               <Link key={r.id} to={r._link}
                 className="block bg-red-50 border border-red-200 rounded-2xl px-4 py-3 active:bg-red-100 transition">
                 <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">❌</span>
+                  <XCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-red-800">{r._tipo}: {r._desc}</p>
                     <p className="text-xs text-red-500">{d}/{m}/{y}</p>
@@ -109,7 +110,7 @@ export default function DashboardTrabajador() {
                         <p className="text-xs text-gray-700">"{r.comentario_rechazo}"</p>
                       </div>
                     )}
-                    <p className="text-xs text-red-400 mt-1.5 font-medium">Toca para ir al módulo y corregir ›</p>
+                    <p className="text-xs text-red-400 mt-1.5 font-medium flex items-center gap-0.5">Toca para ir al módulo y corregir <ChevronRight size={12} /></p>
                   </div>
                 </div>
               </Link>
@@ -121,7 +122,7 @@ export default function DashboardTrabajador() {
       {/* Registros pendientes de aprobación */}
       {totalPendientes > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 flex items-center gap-3">
-          <span className="text-2xl">⏳</span>
+          <Clock size={24} className="text-yellow-500 flex-shrink-0" />
           <div>
             <p className="text-sm font-semibold text-yellow-800">Registros esperando aprobación</p>
             <p className="text-xs text-yellow-600">
@@ -140,7 +141,7 @@ export default function DashboardTrabajador() {
           <p className="text-gray-400 text-sm px-1">Cargando...</p>
         ) : tareas.length === 0 ? (
           <div className="bg-white rounded-2xl p-6 text-center border border-gray-100">
-            <p className="text-3xl mb-2">🎉</p>
+            <div className="flex justify-center mb-2"><CheckCircle2 size={32} className="text-verde-600" /></div>
             <p className="text-sm text-gray-500">Sin actividades pendientes</p>
           </div>
         ) : (
@@ -150,17 +151,17 @@ export default function DashboardTrabajador() {
               return (
                 <Link key={t.id} to="/actividades"
                   className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm border border-gray-100">
-                  <span className="text-xl">{t.prioridad === 'alta' ? '🔴' : t.prioridad === 'media' ? '🟡' : '🟢'}</span>
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${t.prioridad === 'alta' ? 'bg-red-500' : t.prioridad === 'media' ? 'bg-amber-500' : 'bg-verde-600'}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">{t.titulo}</p>
-                    <p className="text-xs text-gray-400">{t.fincas?.nombre}{t.fecha_vencimiento ? ` · ${vencida ? '⚠️ Venció' : 'Vence'} ${fmtFecha(t.fecha_vencimiento)}` : ''}</p>
+                    <p className="text-xs text-gray-400 flex items-center gap-1">{t.fincas?.nombre}{t.fecha_vencimiento ? <>{' · '}{vencida && <AlertTriangle size={12} className="text-amber-600" />}{vencida ? 'Venció' : 'Vence'} {fmtFecha(t.fecha_vencimiento)}</> : ''}</p>
                   </div>
                   {vencida && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">Vencida</span>}
                 </Link>
               )
             })}
-            <Link to="/actividades" className="block text-center text-sm text-verde-600 font-medium py-2">
-              Ver todas las actividades ›
+            <Link to="/actividades" className="flex items-center justify-center gap-0.5 text-center text-sm text-verde-600 font-medium py-2">
+              Ver todas las actividades <ChevronRight size={16} />
             </Link>
           </div>
         )}
@@ -170,15 +171,15 @@ export default function DashboardTrabajador() {
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Módulos</p>
         <div className="space-y-2">
-          {modulos.map(({ to, icon, label, desc }) => (
+          {modulos.map(({ to, icon: Icon, label, desc }) => (
             <Link key={to} to={to}
               className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-4 shadow-sm border border-gray-100 active:bg-gray-50 transition">
-              <span className="text-2xl w-9 text-center">{icon}</span>
+              <span className="w-9 flex justify-center"><Icon size={24} className="text-verde-700" /></span>
               <div className="flex-1">
                 <div className="text-sm font-semibold text-gray-800">{label}</div>
                 <div className="text-xs text-gray-400">{desc}</div>
               </div>
-              <span className="text-gray-300 text-xl">›</span>
+              <ChevronRight size={20} className="text-gray-300" />
             </Link>
           ))}
         </div>
@@ -188,10 +189,10 @@ export default function DashboardTrabajador() {
   )
 }
 
-function AccionRapida({ to, icon, label }) {
+function AccionRapida({ to, icon: Icon, label }) {
   return (
     <Link to={to} className="bg-white/15 hover:bg-white/25 rounded-2xl py-3 flex flex-col items-center gap-1 transition">
-      <span className="text-2xl">{icon}</span>
+      <Icon size={24} className="text-white" />
       <span className="text-xs text-white font-medium">{label}</span>
     </Link>
   )

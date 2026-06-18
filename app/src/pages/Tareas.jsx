@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { ListChecks, Camera, Mic, Check } from '../components/icons'
 
 async function notificarTarea({ tarea_id, asignado_a, titulo, descripcion }) {
   if (!asignado_a) return
@@ -143,7 +144,11 @@ export default function Tareas() {
               onClick={() => abrirDetalle(t.id)}
               className={`bg-white border rounded-xl px-4 py-3 cursor-pointer hover:shadow transition ${t.completada ? 'border-gray-100 opacity-60' : 'border-gray-200'}`}>
               <div className="flex items-start gap-3">
-                <span className="text-lg mt-0.5">{t.completada ? '✅' : prioridadIcon(t.prioridad)}</span>
+                <span className="mt-1 flex-shrink-0">
+                  {t.completada
+                    ? <ListChecks size={18} className="text-verde-700" />
+                    : <span className={`inline-block w-2.5 h-2.5 rounded-full ${prioridadDot(t.prioridad)}`} />}
+                </span>
                 <div className="flex-1 min-w-0">
                   <div className={`font-semibold text-sm ${t.completada ? 'line-through text-gray-400' : 'text-gray-800'}`}>{t.titulo}</div>
                   <div className="text-xs text-gray-500 mt-0.5">
@@ -173,7 +178,7 @@ export default function Tareas() {
 
             {/* Fotos evidencia */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">📷 Fotos de evidencia</p>
+              <p className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2"><Camera size={16} /> Fotos de evidencia</p>
               {fotosDetalle.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   {fotosDetalle.map(f => (
@@ -191,7 +196,7 @@ export default function Tareas() {
 
             {/* Nota de voz */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">🎤 Nota de voz</p>
+              <p className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1"><Mic size={16} /> Nota de voz</p>
               {detalle.nota_voz_url
                 ? <audio controls src={detalle.nota_voz_url} className="w-full" />
                 : <label className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-sm text-gray-400 cursor-pointer hover:border-verde-400 transition">
@@ -204,8 +209,8 @@ export default function Tareas() {
 
             {!detalle.completada && (
               <button onClick={() => { completar(detalle); setDetalleId(null) }}
-                className="w-full bg-verde-600 text-white py-3 rounded-xl font-semibold hover:bg-verde-700 transition">
-                Marcar como completada ✓
+                className="w-full bg-verde-600 text-white py-3 rounded-xl font-semibold hover:bg-verde-700 transition inline-flex items-center justify-center gap-1.5">
+                Marcar como completada <Check size={18} />
               </button>
             )}
           </div>
@@ -247,7 +252,7 @@ export default function Tareas() {
   )
 }
 
-function prioridadIcon(p) { return p === 'alta' ? '🔴' : p === 'media' ? '🟡' : '🟢' }
+function prioridadDot(p) { return p === 'alta' ? 'bg-red-500' : p === 'media' ? 'bg-amber-500' : 'bg-verde-600' }
 function prioridadColor(p) {
   return p === 'alta' ? 'bg-red-100 text-red-600' : p === 'media' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'
 }

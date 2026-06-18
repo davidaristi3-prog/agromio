@@ -5,6 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { Map, MapPin, Crosshair, Pencil, Pin, X } from '../components/icons'
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const COLORES = ['#22c55e', '#3b82f6', '#eab308', '#ef4444', '#a855f7', '#f97316', '#14b8a6', '#ec4899']
@@ -211,7 +212,7 @@ export default function Potreros() {
   if (!TOKEN) {
     return (
       <div className="space-y-4 pt-2">
-        <h2 className="text-xl font-bold text-gray-800">🗺️ Potreros</h2>
+        <h2 className="text-xl font-bold text-gray-800 inline-flex items-center gap-2"><Map size={24} /> Potreros</h2>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3 text-sm text-amber-800">
           <p className="font-semibold">Falta configurar el mapa</p>
           <p>El mapa satelital usa Mapbox y necesita un <strong>token público</strong>. Pasos (no me lo pegues en el chat):</p>
@@ -229,11 +230,11 @@ export default function Potreros() {
   return (
     <div className="space-y-3 pt-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">🗺️ Potreros</h2>
+        <h2 className="text-xl font-bold text-gray-800 inline-flex items-center gap-2"><Map size={24} /> Potreros</h2>
         {puedeEditar && fincaId && (
           <button onClick={dibujar}
-            className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition">
-            ✏️ Dibujar potrero
+            className="bg-verde-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-verde-700 transition inline-flex items-center gap-1">
+            <Pencil size={16} /> Dibujar potrero
           </button>
         )}
       </div>
@@ -251,17 +252,17 @@ export default function Potreros() {
 
       {enPotrero && (
         <div className="bg-verde-600 text-white rounded-xl px-4 py-2 text-sm font-semibold flex items-center gap-2">
-          📍 Estás en: {enPotrero}
+          <MapPin size={16} /> Estás en: {enPotrero}
         </div>
       )}
 
       {/* Aviso para ubicar la finca la primera vez */}
       {puedeEditar && sinUbicacion && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800 space-y-2">
-          <p>Esta finca aún no tiene ubicación. Centra el mapa en <strong>{fincaActual?.nombre}</strong> (toca 📍 si estás en la finca, o arrastra el mapa hasta ella) y guárdala:</p>
+          <p>Esta finca aún no tiene ubicación. Centra el mapa en <strong>{fincaActual?.nombre}</strong> (toca el botón de ubicación <Crosshair size={14} className="inline align-text-bottom" /> si estás en la finca, o arrastra el mapa hasta ella) y guárdala:</p>
           <button onClick={fijarUbicacion}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">
-            📌 Fijar el centro de esta finca aquí
+            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+            <Pin size={16} /> Fijar el centro de esta finca aquí
           </button>
         </div>
       )}
@@ -277,16 +278,16 @@ export default function Potreros() {
       {/* El recuadro del mapa SIEMPRE se renderiza para que el mapa arranque al cargar */}
       <div ref={contRef} className="w-full h-[62vh] rounded-xl overflow-hidden border border-gray-200 bg-gray-100" />
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-gray-400 text-center inline-flex flex-wrap items-center justify-center gap-1 w-full">
         {puedeEditar
-          ? 'Toca "Dibujar potrero", marca las esquinas siguiendo las cercas y cierra tocando el primer punto. Usa 📍 para ubicarte.'
-          : 'Toca 📍 (arriba a la derecha) para ver en qué potrero estás.'}
+          ? <>Toca "Dibujar potrero", marca las esquinas siguiendo las cercas y cierra tocando el primer punto. Usa <Crosshair size={12} className="inline align-text-bottom" /> para ubicarte.</>
+          : <>Toca <Crosshair size={12} className="inline align-text-bottom" /> (arriba a la derecha) para ver en qué potrero estás.</>}
       </p>
 
       {puedeEditar && fincaActual && !sinUbicacion && (
         <button onClick={fijarUbicacion}
-          className="w-full text-xs text-gray-400 hover:text-verde-600 transition">
-          📌 Actualizar el centro de esta finca a la vista actual
+          className="w-full text-xs text-gray-400 hover:text-verde-600 transition inline-flex items-center justify-center gap-1">
+          <Pin size={14} /> Actualizar el centro de esta finca a la vista actual
         </button>
       )}
 
@@ -427,7 +428,7 @@ function SheetPotrero({ potrero, lotes, puedeEditar, onClose, onEliminar, onActu
             <div className="flex items-center gap-3">
               <span className="w-5 h-5 rounded-full" style={{ background: potrero.color }} />
               <h3 className="font-bold text-gray-800 text-lg flex-1">{potrero.nombre}</h3>
-              <button onClick={onClose} className="text-gray-400 text-xl">×</button>
+              <button onClick={onClose} className="text-gray-400"><X size={22} /></button>
             </div>
             <div className="text-sm text-gray-500 space-y-1">
               {potrero.area_ha != null && <div>Área: <strong>{Number(potrero.area_ha).toFixed(2)} ha</strong></div>}

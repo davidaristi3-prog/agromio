@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fmtFecha } from '../lib/fecha'
+import { Milk } from '../components/icons'
 
 export default function Ordenos() {
   const { perfil } = useAuth()
@@ -81,7 +82,7 @@ export default function Ordenos() {
 
       {/* Resumen del día */}
       <div className="bg-verde-50 border border-verde-200 rounded-xl px-4 py-3 flex items-center gap-3">
-        <span className="text-3xl">🥛</span>
+        <Milk size={28} className="text-verde-700" />
         <div>
           <div className="text-2xl font-bold text-verde-800">{litrosHoy.toFixed(1)} L</div>
           <div className="text-xs text-verde-600">Total registrado hoy</div>
@@ -104,7 +105,7 @@ export default function Ordenos() {
         <div className="space-y-2">
           {registros.map(r => (
             <div key={r.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
-              <span className="text-xl">🥛</span>
+              <Milk size={20} className="text-verde-700" />
               <div className="flex-1">
                 <div className="font-semibold text-sm text-gray-800">
                   {r.animales ? `${r.animales.identificacion}${r.animales.nombre ? ` · ${r.animales.nombre}` : ''}` : 'Finca (sin animal)'}

@@ -16,8 +16,8 @@ export default defineConfig({
         name: 'AGROMIO',
         short_name: 'AGROMIO',
         description: 'Gestión de fincas lecheras',
-        theme_color: '#16a34a',
-        background_color: '#f0fdf4',
+        theme_color: '#0f5d57',
+        background_color: '#eef5f4',
         display: 'standalone',
         start_url: '/',
         icons: [
